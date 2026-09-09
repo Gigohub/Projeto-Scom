@@ -1,0 +1,12 @@
+const cards_catalog = [
+    {
+    id: "KD-001",
+    nome: "Kind",
+    tipo: "action",
+    nivel: 5,
+    atk: 3000,
+    def: 2500,
+    efeito: "pode escolher uma carta de action do oponente e destrui-la",
+    imagem: "images/kind.jpg",
+    }
+]
