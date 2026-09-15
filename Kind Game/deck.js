@@ -31,20 +31,22 @@ function embaralharDeck(deckAtual) {
 
 function comprarCarta(jogadorAlvo) {
   if (jogadorAlvo.deck.length === 0) {
-    console.warn(`${jogadorAlvo.nome} não tem mais cartas no deck.`);
+    logMensagem(`${jogadorAlvo.nome} não tem mais cartas no deck.`);
     return null;
   }
   const cartaComprada = jogadorAlvo.deck.pop();
   jogadorAlvo.mao.push(cartaComprada);
+  atualizarDeckVisual();
   if (!jogadorAlvo.ehIA) renderHand(jogadorAlvo);
   return cartaComprada;
 }
 
-function comprarCartasSemRenderizar(jogadorAlvo, quantidade) {
+function comprarCartasSemRenderizar(jogadorAlvo, quantidade = 5) {
   for (let i = 0; i < quantidade; i++) {
     if (jogadorAlvo.deck.length === 0) break;
     jogadorAlvo.mao.push(jogadorAlvo.deck.pop());
   }
+  atualizarDeckVisual();
   if (!jogadorAlvo.ehIA) renderHand(jogadorAlvo);
 }
 
@@ -58,3 +60,4 @@ function iniciarPartida() {
 document.addEventListener("DOMContentLoaded", () => {
   iniciarPartida();
 });
+

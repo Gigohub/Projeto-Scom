@@ -66,4 +66,49 @@ const cards_catalog = [
     efeito: "pode escolher uma carta de action do oponente e destrui-la",
     imagem: "images/kind.jpg",
     }
+
+   , {
+    id: "KD-007",
+    nome: "Kind",
+    tipo: "action",
+    nivel: 5,
+    atk: 3000,
+    def: 2500,
+    efeito: "pode escolher uma carta de action do oponente e destrui-la",
+    imagem: "images/kind.jpg",
+    }
+
+    ,{
+    id: "KD-008",
+    nome: "Kind",
+    tipo: "action",
+    nivel: 5,
+    atk: 3000,
+    def: 2500,
+    efeito: "pode escolher uma carta de action do oponente e destrui-la",
+    imagem: "images/kind.jpg",
+    }
+    
+    ,{
+    id: "KD-009",
+    nome: "Kind",
+    tipo: "action",
+    nivel: 5,
+    atk: 3000,
+    def: 2500,
+    efeito: "pode escolher uma carta de action do oponente e destrui-la",
+    imagem: "images/kind.jpg",
+    }
+
+    
+    ,{
+    id: "KD-010",
+    nome: "Kind",
+    tipo: "action",
+    nivel: 5,
+    atk: 3000,
+    def: 2500,
+    efeito: "pode escolher uma carta de action do oponente e destrui-la",
+    imagem: "images/kind.jpg",
+    }
 ]

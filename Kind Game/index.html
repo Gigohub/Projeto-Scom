@@ -14,19 +14,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <header>
-        <div class="header-title-container"> <!-- titulo do jogo-->
-            <h1>Kind Game</h1>
-        </div>
-        <div class="controles-turno">
-   <button id="next-phase-button">Próxima Fase</button>
-    </div>~
+    <div class="header-title-container">
+        <h1>Kind Game</h1>
+    </div>
     <div class="controles-turno">
-  <button id="next-phase-button">Próxima Fase</button>
-  <span id="turno-atual" style="margin-left: 15px; font-weight: bold; color: #fff;">Turno: 1</span>
-  <span id="fase-atual" style="margin-left: 15px; font-weight: bold; color: #ffd700;">Fase: COMPRA (Jogador)</span>
-</div>
-    </header>
+        <button id="next-phase-button">Próxima Fase</button>
+        <span id="turno-atual">Turno: 1</span>
+        <span id="fase-atual">Fase: COMPRA (Jogador)</span>
+    </div>
+    <div class="hud-vida">
+        <span class="vida-label">Você: <span id="vida-jogador">4000</span> LP</span>
+        <span class="vida-label">Oponente: <span id="vida-oponente">4000</span> LP</span>
+    </div>
+    <div id="log-jogo">
+        <h3>Status da Partida</h3>
+        <ul id="log-lista"></ul>
+    </div>
+</header>
     
     <main>
       
@@ -69,12 +75,24 @@
   </div>
 </div>
 -->
+    <div class="hud-vida">
+  <span class="vida-label">Você: <span id="vida-jogador">4000</span> LP</span>
+  <span class="vida-label">Oponente: <span id="vida-oponente">4000</span> LP</span>
+</div>
 
     </main>
     <div class="area-oponente">
   <div class="hand-container oponente-hand"></div>
 
   <div class="field-container">
+    <div class="deck-slot" id="jogador-deck">
+      <div class="card">
+      <div class="card-inner">
+      <div class="card-back"><img src="images/coffe.jpg" class="card-img" alt="Baralho"></div>
+      </div>
+      </div>
+      <span class="deck-contador" id="jogador-deck-contador">0</span>
+  </div>
     <div class="field-row" id="oponente-magias-armadilhas">
       <div class="field-slot" data-slot="0"></div>
       <div class="field-slot" data-slot="1"></div>
@@ -94,6 +112,14 @@
 
 <div class="area-jogador">
   <div class="field-container">
+ <div class="deck-slot" id="jogador-deck">
+      <div class="card">
+      <div class="card-inner">
+      <div class="card-back"><img src="images/coffe.jpg" class="card-img" alt="Baralho"></div>
+      </div>
+      </div>
+      <span class="deck-contador" id="jogador-deck-contador">0</span>
+</div>
     <div class="field-row" id="jogador-monstros">
       <div class="field-slot" data-slot="0"></div>
       <div class="field-slot" data-slot="1"></div>

@@ -7,11 +7,12 @@
     position: relative;
 }
 .card{
-    position:absolute;
+    position:relative;
     width:var(--card-width);
     height:var(--card-height);
     perspective: 1000px;
     cursor: pointer;
+    flex-shrink: 0; // Impede que o card encolha em um flex container
 }
 .card-inner{
      position:relative;
@@ -129,4 +130,58 @@ c--card-width: 157px;
 .field-slot.selecionavel{
   border-color: #84ff00;
   background: rgba(46,204, 113, 0.15);
+}
+
+.hud-vida {
+  display: flex;
+  gap: 20px;
+  color: #fff;
+  font-weight: bold;
+  margin-top: 6px;
+}
+
+.hand-container{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px;
+  min-height: var(--card-height); /* mantém o espaço reservado mesmo com a mão vazia */
+}
+
+#log-jogo {
+  max-height: 140px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  padding: 8px 12px;
+  margin: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+#log-jogo h3 { margin: 0 0 6px 0; font-size: 14px; }
+#log-jogo ul { list-style: none; margin: 0; padding: 0; }
+#log-jogo li { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+
+.hud-vida {
+  display: flex;
+  gap: 20px;
+  color: #fff;
+  font-weight: bold;
+  margin: 6px 10px;
+}
+
+.deck-slot {
+  position: relative;
+  width: var(--card-width);
+  height: var(--card-height);
+}
+.deck-contador {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: #000;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
 }

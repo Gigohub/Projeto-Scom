@@ -78,7 +78,15 @@ function renderhandOponent(oponente) {
 
 let selectedCard = null;
 
+function podeInvocar() {
+    return turnState.jogadorDaVez === jogador && turnState.fase === "principal";
+}
+
 function putInCamp(idCarta){
+    if (!podeInvocar()) {
+        console.log("Só é possível colocar cartas na Fase Principal, no seu turno.");
+        return;
+    }
     const carta = jogador.mao.find((c) => c.id === idCarta);
     if (!carta) return;
     selectedCard = idCarta;
@@ -138,8 +146,8 @@ function criarJogador(nome, ehIA = false) {
     nome: nome,
     ehIA: ehIA,
     vidaPontos: 4000,
-    deck: [...cards_catalog],
-    mao: [cards_catalog[2]],
+    deck: cards_catalog.map((carta) => ({ ...carta })), // cópia de cada carta, não a referência
+    mao: [], // a mão começa vazia — as 5 cartas iniciais vêm de comprarCartasSemRenderizar()
     campo: {
       actions: [null, null, null, null, null],
       pensamentos: [null, null, null, null, null]
@@ -187,6 +195,36 @@ function onNextPhase() {
   }
 }
 
+function iajogarcarta() {
+    const slotsLivres = oponente.campo.actions
+        .map((carta, indice) => (carta === null ? indice : null))
+        .filter((indice) => indice !== null);
+
+    if (slotsLivres.length === 0 || oponente.mao.length === 0) return;
+
+    const melhorCarta = [...oponente.mao].sort((a, b) => b.atk - a.atk)[0];
+    colocarCartaNoCampo(oponente, melhorCarta.id, "actions", slotsLivres[0]);
+}
+
+function iaAtacar() {
+    if (turnState.jaAtacouNesteTurno) return; // mesma regra vale para a IA
+
+    const atacante = oponente.campo.actions.find((c) => c !== null);
+    if (!atacante) return;
+
+    const defensores = jogador.campo.actions.filter((c) => c !== null);
+    if (defensores.length === 0) {
+        resolverAtaqueDireto(atacante, jogador);
+    } else {
+        const vulneraveis = defensores.filter((alvo) => atacante.atk > alvo.def);
+        const alvo = vulneraveis.length > 0
+            ? vulneraveis.sort((a, b) => a.def - b.def)[0]
+            : defensores[0];
+        resolverBatalha(atacante, alvo, jogador);
+    }
+    turnState.jaAtacouNesteTurno = true;
+}
+
 function executarTurnoIA(fase) {
     switch (fase) {
         case "compra":
@@ -198,6 +236,7 @@ function executarTurnoIA(fase) {
             setTimeout(avancarFase, 800);
             break;
         case "batalha":
+            iaAtacar();
             setTimeout(avancarFase, 800);
             break;
         case "final":
@@ -246,6 +285,7 @@ function passarTurno() {
 
     turnState.jogadorDaVez = jogador;
     turnState.fase = "compra";
+    atualizarHUD(); // novo
     onNextPhase();
 }
 
@@ -287,7 +327,7 @@ function selecionarAlvoEAtacar(cartaAtacante) {
             const numeroSlot = Number(slot.dataset.slot);
             const alvo = oponente.campo.actions[numeroSlot];
             if (alvo) {
-                resolverBatalha(cartaAtacante, alvo);
+                resolverBatalha(cartaAtacante, alvo, oponente);
             } else {
                 resolverAtaqueDireto(cartaAtacante, oponente);
             }
@@ -298,15 +338,41 @@ function selecionarAlvoEAtacar(cartaAtacante) {
 }
 
 function resolverAtaqueDireto(cartaAtacante, jogadorAlvo) {
-    jogadorAlvo.vidaPontos -= cartaAtacante.atk;
-    console.log(`${cartaAtacante.nome} atacou diretamente! Vida de ${jogadorAlvo.nome}: ${jogadorAlvo.vidaPontos}`);
+    jogadorAlvo.vidaPontos = Math.max(0, jogadorAlvo.vidaPontos - cartaAtacante.atk);
+    atualizarHUD();
+    logMensagem(`${cartaAtacante.nome} atacou diretamente! ${jogadorAlvo.nome} perdeu ${cartaAtacante.atk} pontos de vida.`);
+    verificarVitoria();
 }
 
-function resolverBatalha(atacante, defensor) {
+function resolverBatalha(atacante, defensor, jogadorDefensor) {
     if (atacante.atk > defensor.def) {
-        console.log(`${atacante.nome} destruiu ${defensor.nome}!`);
+        removerCartaDoCampo(jogadorDefensor, defensor.id);
+        logMensagem(`${atacante.nome} (ATK ${atacante.atk}) destruiu ${defensor.nome} (DEF ${defensor.def})!`);
+    } else if (atacante.atk < defensor.def) {
+        logMensagem(`${defensor.nome} resistiu ao ataque de ${atacante.nome}.`);
     } else {
-        console.log(`${defensor.nome} defendeu o ataque.`);
+        logMensagem("As cartas têm o mesmo poder — nenhuma foi destruída.");
+    }
+}
+
+function removerCartaDoCampo(jogadorDono, idCarta) {
+    const indice = jogadorDono.campo.actions.findIndex((c) => c && c.id === idCarta);
+    if (indice === -1) return;
+    jogadorDono.campo.actions[indice] = null;
+
+    const prefixo = jogadorDono.ehIA ? "oponente" : "jogador";
+    const slot = document.querySelector(`#${prefixo}-monstros .field-slot[data-slot="${indice}"]`);
+    if (slot) {
+        slot.innerHTML = "";
+        slot.classList.remove("ocupado");
+    }
+}
+
+function verificarVitoria() {
+    if (jogador.vidaPontos <= 0) {
+        logMensagem("Você perdeu! O oponente venceu a partida.");
+    } else if (oponente.vidaPontos <= 0) {
+        logMensagem("Você venceu a partida!");
     }
 }
 
@@ -315,4 +381,35 @@ function limparEventosAtaque() {
         slot.onclick = null;
         slot.style.cursor = "default";
     });
+}
+
+function atualizarHUD() {
+    const vidaJog = document.querySelector("#vida-jogador");
+    const vidaOp = document.querySelector("#vida-oponente");
+    if (vidaJog) vidaJog.textContent = jogador.vidaPontos;
+    if (vidaOp) vidaOp.textContent = oponente.vidaPontos;
+}
+
+function logMensagem(texto) {
+  console.log(texto); // mantemos no console também, útil para você debugar
+  const lista = document.querySelector("#log-lista");
+  if (!lista) return;
+  const item = document.createElement("li");
+  item.textContent = texto;
+  lista.appendChild(item);
+  lista.scrollTop = lista.scrollHeight; // rola a lista até a mensagem mais nova
+}
+
+function atualizarHUD() {
+    const vidaJog = document.querySelector("#vida-jogador");
+    const vidaOp = document.querySelector("#vida-oponente");
+    if (vidaJog) vidaJog.textContent = jogador.vidaPontos;
+    if (vidaOp) vidaOp.textContent = oponente.vidaPontos;
+}
+
+function atualizarDeckVisual() {
+  const contadorJogador = document.querySelector("#jogador-deck-contador");
+  const contadorOponente = document.querySelector("#oponente-deck-contador");
+  if (contadorJogador) contadorJogador.textContent = jogador.deck.length;
+  if (contadorOponente) contadorOponente.textContent = oponente.deck.length;
 }
