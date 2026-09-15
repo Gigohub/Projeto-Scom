@@ -20,25 +20,32 @@ function embaralharDeck(deckAtual) {
   return copia; // fora do loop!
 }
 
-function comprarCarta() {
+function embaralharDeck(deckAtual) {
+  const copia = [...deckAtual];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+
+function comprarCarta(jogadorAlvo) {
   if (jogadorAlvo.deck.length === 0) {
     console.warn(`${jogadorAlvo.nome} não tem mais cartas no deck.`);
     return null;
   }
   const cartaComprada = jogadorAlvo.deck.pop();
-  jogadorAlvo.hand.push(cartaComprada); // usa "hand", igual ao index.js
-
-  if(!jogadorAlvo.ehIA) {
-    renderHand(jogadorAlvo);
-  }
+  jogadorAlvo.mao.push(cartaComprada);
+  if (!jogadorAlvo.ehIA) renderHand(jogadorAlvo);
+  return cartaComprada;
 }
 
-function comprarCartasSemRenderizar(quantidade) {
+function comprarCartasSemRenderizar(jogadorAlvo, quantidade) {
   for (let i = 0; i < quantidade; i++) {
-    if (deck.length === 0) break;
-    hand.push(deck.pop());
+    if (jogadorAlvo.deck.length === 0) break;
+    jogadorAlvo.mao.push(jogadorAlvo.deck.pop());
   }
-  renderHand(); // chama só uma vez, no final
+  if (!jogadorAlvo.ehIA) renderHand(jogadorAlvo);
 }
 
 function iniciarPartida() {
