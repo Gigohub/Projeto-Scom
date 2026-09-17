@@ -50,14 +50,4 @@ function comprarCartasSemRenderizar(jogadorAlvo, quantidade = 5) {
   if (!jogadorAlvo.ehIA) renderHand(jogadorAlvo);
 }
 
-function iniciarPartida() {
-  const idsDoMeuDeck = cards_catalog.map((c) => c.id); // por enquanto, usa todo o catálogo
-  montarDeck(idsDoMeuDeck);
-  deck = embaralharDeck(deck);
-  comprarCartasSemRenderizar(5);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  iniciarPartida();
-});
 

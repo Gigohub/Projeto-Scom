@@ -1,28 +1,20 @@
-
-
-
-let deck = [cards_catalog];
-let hand = [];
-let campo = {
-    actions: [null, null, null],
-    pensamentos: [null, null, null],
-};
-
+let selectedCard = null;
 
 function gerarCarta(carta){
     const cardDiv = document.createElement("div");
     cardDiv.classList.add("card");
     cardDiv.dataset.id = carta.id;
 
-    const statsHtml =  carta.tipo === "action"
-      ?   `<div class="card-stats">
+    const statsHtml = carta.tipo === "action"
+      ? `<div class="card-stats">
             <span class="atk">ATK/${carta.atk}</span>
             <span class="def">DEF/${carta.def}</span>
-        </div>
-    ` : "";
-    const nivelHtml = carta.tipo === "action" 
-    ? `<span class="card-nivel">${"★".repeat(carta.nivel)}</span>` : "";
-    
+        </div>`
+      : "";
+    const nivelHtml = carta.tipo === "action"
+        ? `<span class="card-nivel">${"★".repeat(carta.nivel)}</span>`
+        : "";
+
     cardDiv.innerHTML = `
     <div class="card-inner">
       <div class="card-front card-${carta.tipo.toLowerCase()}">
@@ -43,7 +35,6 @@ function gerarCarta(carta){
   `;
 
   return cardDiv;
-
 }
 
 function renderHand(jogadorAlvo){
@@ -76,15 +67,15 @@ function renderhandOponent(oponente) {
   });
 }
 
-let selectedCard = null;
-
 function podeInvocar() {
-    return turnState.jogadorDaVez === jogador && turnState.fase === "principal";
+    return turnState.jogadorDaVez === jogador
+        && turnState.fase === "principal"
+        && turnState.invocacoesNesteTurno < 1;
 }
 
 function putInCamp(idCarta){
     if (!podeInvocar()) {
-        console.log("Só é possível colocar cartas na Fase Principal, no seu turno.");
+        logMensagem("Só é possível colocar cartas na Fase Principal, no seu turno.");
         return;
     }
     const carta = jogador.mao.find((c) => c.id === idCarta);
@@ -98,7 +89,7 @@ function freeSlots(tipoCarta){
     document.querySelectorAll(`#${linhaId} .field-slot`).forEach((slot) => {
         if (!slot.classList.contains("ocupado")) {
             slot.classList.add("selecionavel");
-            slot.addEventListener("click", onSlotClicado, {once:true});
+            slot.addEventListener("click", onSlotClicado, { once: true });
         }
     });
 }
@@ -108,8 +99,12 @@ function onSlotClicado(event){
     const linha = slot.closest(".field-row");
     const tipoLinha = linha.id === "jogador-monstros" ? "actions" : "pensamentos";
     const numeroSlot = Number(slot.dataset.slot);
+
     colocarCartaNoCampo(jogador, selectedCard, tipoLinha, numeroSlot);
+    turnState.invocacoesNesteTurno++;
+
     limparSelecao();
+    atualizarBotoesDeEfeito();
 }
 
 function colocarCartaNoCampo(jogadorDono, idCarta, tipoLinha, numeroSlot) {
@@ -117,10 +112,11 @@ function colocarCartaNoCampo(jogadorDono, idCarta, tipoLinha, numeroSlot) {
   if (indiceNaMao === -1) return;
 
   const [carta] = jogadorDono.mao.splice(indiceNaMao, 1);
+  carta.jaAtacou = false;
+  carta.efeitoUsado = false;
+
   jogadorDono.campo[tipoLinha][numeroSlot] = carta;
-
   atualizarVisualDoSlot(jogadorDono, tipoLinha, numeroSlot, carta);
-
   jogadorDono.ehIA ? renderhandOponent(jogadorDono) : renderHand(jogadorDono);
 }
 
@@ -129,9 +125,22 @@ function atualizarVisualDoSlot(jogadorDono, tipoLinha, numeroSlot, carta) {
     const linhaId = tipoLinha === "actions" ? `${prefixo}-monstros` : `${prefixo}-magias-armadilhas`;
     const slot = document.querySelector(`#${linhaId} .field-slot[data-slot="${numeroSlot}"]`);
     if (!slot) return;
+
     slot.innerHTML = "";
     slot.appendChild(gerarCarta(carta));
     slot.classList.add("ocupado");
+
+    if (!jogadorDono.ehIA && carta.efeito) {
+        const botao = document.createElement("button");
+        botao.classList.add("botao-efeito");
+        botao.textContent = "Ativar Efeito";
+        botao.addEventListener("click", (evento) => {
+            evento.stopPropagation();
+            ativarEfeito(jogadorDono, carta);
+        });
+        slot.appendChild(botao);
+    }
+    atualizarBotoesDeEfeito();
 }
 
 function limparSelecao(){
@@ -146,8 +155,8 @@ function criarJogador(nome, ehIA = false) {
     nome: nome,
     ehIA: ehIA,
     vidaPontos: 4000,
-    deck: cards_catalog.map((carta) => ({ ...carta })), // cópia de cada carta, não a referência
-    mao: [], // a mão começa vazia — as 5 cartas iniciais vêm de comprarCartasSemRenderizar()
+    deck: cards_catalog.map((carta) => ({ ...carta })),
+    mao: [],
     campo: {
       actions: [null, null, null, null, null],
       pensamentos: [null, null, null, null, null]
@@ -159,30 +168,33 @@ const jogador = criarJogador("Jogador", false);
 const oponente = criarJogador("Próximo (IA)", true);
 
 const turnState = {
-  jogadorDaVez: null,   // referência para `jogador` ou `oponente`
+  jogadorDaVez: null,
   fase: "compra",
-  numeroDoTurno: 1
+  numeroDoTurno: 1,
+  invocacoesNesteTurno: 0
 };
 
 const ORDEM_DE_FASES = ["compra", "principal", "batalha", "final"];
 
+// ===== ESTA É A FUNÇÃO QUE ESTAVA QUEBRADA =====
+// Antes, o "}" de fechamento vinha cedo demais, e todo o código abaixo
+// rodava sozinho, fora da função, assim que o script carregava.
 function onNextPhase() {
   limparSelecao();
   limparEventosAtaque();
+  atualizarBotoesDeEfeito();
 
-  // Atualiza o indicador de turno e fase na tela
   const displayTurno = document.querySelector("#turno-atual");
   const displayFase = document.querySelector("#fase-atual");
 
   if (displayTurno) {
     displayTurno.textContent = `Turno: ${turnState.numeroDoTurno}`;
   }
-
   if (displayFase) {
     displayFase.textContent = `Fase: ${turnState.fase.toUpperCase()} (${turnState.jogadorDaVez.nome})`;
   }
 
-  console.log(`[Turno ${turnState.numeroDoTurno}] ${turnState.jogadorDaVez.nome} - Fase: ${turnState.fase}`);
+  logMensagem(`[Turno ${turnState.numeroDoTurno}] ${turnState.jogadorDaVez.nome} - Fase: ${turnState.fase}`);
 
   if (turnState.jogadorDaVez.ehIA) {
     executarTurnoIA(turnState.fase);
@@ -193,9 +205,11 @@ function onNextPhase() {
       habilitarAtaqueJogador();
     }
   }
-}
+} // <- fechamento correto, tudo que precisa rodar A CADA fase fica DENTRO
 
 function iajogarcarta() {
+    if (turnState.invocacoesNesteTurno >= 1) return;
+
     const slotsLivres = oponente.campo.actions
         .map((carta, indice) => (carta === null ? indice : null))
         .filter((indice) => indice !== null);
@@ -204,25 +218,26 @@ function iajogarcarta() {
 
     const melhorCarta = [...oponente.mao].sort((a, b) => b.atk - a.atk)[0];
     colocarCartaNoCampo(oponente, melhorCarta.id, "actions", slotsLivres[0]);
+    turnState.invocacoesNesteTurno++;
 }
 
 function iaAtacar() {
-    if (turnState.jaAtacouNesteTurno) return; // mesma regra vale para a IA
+    const atacantes = oponente.campo.actions.filter((c) => c !== null && !c.jaAtacou);
 
-    const atacante = oponente.campo.actions.find((c) => c !== null);
-    if (!atacante) return;
+    atacantes.forEach((atacante) => {
+        const defensores = jogador.campo.actions.filter((c) => c !== null);
 
-    const defensores = jogador.campo.actions.filter((c) => c !== null);
-    if (defensores.length === 0) {
-        resolverAtaqueDireto(atacante, jogador);
-    } else {
-        const vulneraveis = defensores.filter((alvo) => atacante.atk > alvo.def);
-        const alvo = vulneraveis.length > 0
-            ? vulneraveis.sort((a, b) => a.def - b.def)[0]
-            : defensores[0];
-        resolverBatalha(atacante, alvo, jogador);
-    }
-    turnState.jaAtacouNesteTurno = true;
+        if (defensores.length === 0) {
+            resolverAtaqueDireto(atacante, jogador);
+        } else {
+            const vulneraveis = defensores.filter((alvo) => atacante.atk > alvo.def);
+            const alvo = vulneraveis.length > 0
+                ? vulneraveis.sort((a, b) => a.def - b.def)[0]
+                : defensores[0];
+            resolverBatalha(atacante, alvo, jogador);
+        }
+        atacante.jaAtacou = true;
+    });
 }
 
 function executarTurnoIA(fase) {
@@ -247,18 +262,7 @@ function executarTurnoIA(fase) {
     }
 }
 
-function nextphase() {
-    const indiceAtual = ORDEM_DE_FASES.indexOf(turnState.fase);
-    const proximaFase = ORDEM_DE_FASES[(indiceAtual + 1) % ORDEM_DE_FASES.length];
-    turnState.fase = proximaFase;
-    console.log(`Fase atual: ${turnState.fase}`);
-}
-
-  
-   
-
-
-   function avancarFase() {
+function avancarFase() {
     const indiceAtual = ORDEM_DE_FASES.indexOf(turnState.fase);
     if (indiceAtual === ORDEM_DE_FASES.length - 1) {
         passarTurno();
@@ -272,10 +276,12 @@ function passarTurno() {
     turnState.jogadorDaVez = (turnState.jogadorDaVez === jogador) ? oponente : jogador;
     turnState.fase = "compra";
     turnState.numeroDoTurno++;
+    turnState.invocacoesNesteTurno = 0;
+    resetarAtaques(turnState.jogadorDaVez);
     onNextPhase();
 }
 
-   function iniciarPartida() {
+function iniciarPartida() {
     jogador.deck = embaralharDeck(jogador.deck);
     oponente.deck = embaralharDeck(oponente.deck);
 
@@ -285,7 +291,8 @@ function passarTurno() {
 
     turnState.jogadorDaVez = jogador;
     turnState.fase = "compra";
-    atualizarHUD(); // novo
+    atualizarHUD();
+    atualizarDeckVisual();
     onNextPhase();
 }
 
@@ -297,43 +304,51 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-    //ia oponente
-
-    function prepararAcoesJogador() {
-    if (turnState.fase === "batalha") {
-        habilitarAtaqueJogador();
-    } else {
-        limparEventosAtaque();
-    }
-}
-
 function habilitarAtaqueJogador() {
     document.querySelectorAll("#jogador-monstros .field-slot.ocupado").forEach((slot) => {
+        const numeroSlot = Number(slot.dataset.slot);
+        const cartaAtacante = jogador.campo.actions[numeroSlot];
+
+        if (!cartaAtacante || cartaAtacante.jaAtacou) return;
+
+        slot.classList.add("pode-atacar");
         slot.style.cursor = "pointer";
-        slot.onclick = () => {
-            const numeroSlot = Number(slot.dataset.slot);
-            const cartaAtacante = jogador.campo.actions[numeroSlot];
-            if (cartaAtacante) {
-                selecionarAlvoEAtacar(cartaAtacante);
-            }
-        };
+        slot.onclick = () => selecionarAlvoEAtacar(cartaAtacante);
     });
 }
 
+// ===== VERSÃO ÚNICA E CORRIGIDA (a duplicata antiga foi removida) =====
 function selecionarAlvoEAtacar(cartaAtacante) {
-    document.querySelectorAll("#oponente-monstros .field-slot").forEach((slot) => {
+    const monstrosInimigos = oponente.campo.actions.filter((c) => c !== null);
+
+    // Campo do oponente vazio: ataque direto acontece na hora, sem escolher alvo
+    if (monstrosInimigos.length === 0) {
+        resolverAtaqueDireto(cartaAtacante, oponente);
+        cartaAtacante.jaAtacou = true;
+        limparEventosAtaque();
+        habilitarAtaqueJogador();
+        return;
+    }
+
+    // Existem monstros: OBRIGATÓRIO escolher um deles, só slots ocupados ficam clicáveis
+    document.querySelectorAll("#oponente-monstros .field-slot.ocupado").forEach((slot) => {
         slot.classList.add("selecionavel");
         slot.onclick = () => {
             const numeroSlot = Number(slot.dataset.slot);
             const alvo = oponente.campo.actions[numeroSlot];
-            if (alvo) {
-                resolverBatalha(cartaAtacante, alvo, oponente);
-            } else {
-                resolverAtaqueDireto(cartaAtacante, oponente);
-            }
-            limparSelecao();
-            limparEventosAtaque();
+
+            resolverBatalha(cartaAtacante, alvo, oponente);
+            cartaAtacante.jaAtacou = true;
+            limparSelecaoAlvo();
+            habilitarAtaqueJogador();
         };
+    });
+}
+
+function limparSelecaoAlvo() {
+    document.querySelectorAll("#oponente-monstros .field-slot").forEach((slot) => {
+        slot.classList.remove("selecionavel");
+        slot.onclick = null;
     });
 }
 
@@ -380,6 +395,7 @@ function limparEventosAtaque() {
     document.querySelectorAll(".field-slot").forEach((slot) => {
         slot.onclick = null;
         slot.style.cursor = "default";
+        slot.classList.remove("pode-atacar");
     });
 }
 
@@ -391,20 +407,13 @@ function atualizarHUD() {
 }
 
 function logMensagem(texto) {
-  console.log(texto); // mantemos no console também, útil para você debugar
+  console.log(texto);
   const lista = document.querySelector("#log-lista");
   if (!lista) return;
   const item = document.createElement("li");
   item.textContent = texto;
   lista.appendChild(item);
-  lista.scrollTop = lista.scrollHeight; // rola a lista até a mensagem mais nova
-}
-
-function atualizarHUD() {
-    const vidaJog = document.querySelector("#vida-jogador");
-    const vidaOp = document.querySelector("#vida-oponente");
-    if (vidaJog) vidaJog.textContent = jogador.vidaPontos;
-    if (vidaOp) vidaOp.textContent = oponente.vidaPontos;
+  lista.scrollTop = lista.scrollHeight;
 }
 
 function atualizarDeckVisual() {
@@ -412,4 +421,37 @@ function atualizarDeckVisual() {
   const contadorOponente = document.querySelector("#oponente-deck-contador");
   if (contadorJogador) contadorJogador.textContent = jogador.deck.length;
   if (contadorOponente) contadorOponente.textContent = oponente.deck.length;
+}
+
+function resetarAtaques(jogadorAlvo) {
+    jogadorAlvo.campo.actions.forEach((carta) => {
+        if (carta) carta.jaAtacou = false;
+    });
+}
+
+function atualizarBotoesDeEfeito() {
+    const podeAtivar = turnState.jogadorDaVez === jogador
+        && (turnState.fase === "principal" || turnState.fase === "final");
+
+    document.querySelectorAll(".botao-efeito").forEach((botao) => {
+        botao.style.display = podeAtivar ? "block" : "none";
+    });
+}
+
+function ativarEfeito(jogadorDono, carta) {
+    if (carta.efeitoUsado) {
+        logMensagem(`${carta.nome} já usou seu efeito nesta partida.`);
+        return;
+    }
+
+    if (carta.id.startsWith("KD-")) {
+        const alvo = oponente.campo.actions.find((c) => c !== null);
+        if (!alvo) {
+            logMensagem("O oponente não tem cartas no campo para destruir.");
+            return;
+        }
+        removerCartaDoCampo(oponente, alvo.id);
+        logMensagem(`${carta.nome} ativou seu efeito e destruiu ${alvo.nome}!`);
+        carta.efeitoUsado = true;
+    }
 }
