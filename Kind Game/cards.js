@@ -8,18 +8,21 @@ const cards_catalog = [
     { id: "KD-007", nome: "Kind", tipo: "action", nivel: 5, atk: 3000, def: 2500, efeito: "pode escolher uma carta de action do oponente e destrui-la", imagem: "images/kind.jpg" },
     { id: "KD-008", nome: "Kind", tipo: "action", nivel: 5, atk: 3000, def: 2500, efeito: "pode escolher uma carta de action do oponente e destrui-la", imagem: "images/kind.jpg" },
     { id: "KD-009", nome: "Kind", tipo: "action", nivel: 5, atk: 3000, def: 2500, efeito: "pode escolher uma carta de action do oponente e destrui-la", imagem: "images/kind.jpg" },
-    { id: "KD-010", nome: "Kind", tipo: "action", nivel: 5, atk: 3000, def: 2500, efeito: "pode escolher uma carta de action do oponente e destrui-la", imagem: "images/kind.jpg" }
+    { id: "KD-010", nome: "Kind", tipo: "action", nivel: 5, atk: 3000, def: 2500, efeito: "pode escolher uma carta de action do oponente e destrui-la", imagem: "images/kind.jpg" },
+    { id: "AC-001", nome: "Aceitação", tipo: "pensamentos", efeito: "nega um ataque inimigo", imagem: "images/soniccard.jpg" },
+    { id: "AC-002", nome: "Aceitação", tipo: "pensamentos", efeito: "nega um ataque inimigo", imagem: "images/soniccard.jpg" },
+    { id: "AC-003", nome: "Aceitação", tipo: "pensamentos", efeito: "nega um ataque inimigo", imagem: "images/soniccard.jpg" },
+    { id: "AC-004", nome: "Aceitação", tipo: "pensamentos", efeito: "nega um ataque inimigo", imagem: "images/soniccard.jpg" },
+    { id: "AC-005", nome: "Aceitação", tipo: "pensamentos", efeito: "nega um ataque inimigo", imagem: "images/soniccard.jpg" },
+    { id: "AC-006", nome: "Aceitação", tipo: "pensamentos", efeito: "nega um ataque inimigo", imagem: "images/soniccard.jpg" },
+    { id: "AC-007", nome: "Aceitação", tipo: "pensamentos", efeito: "nega um ataque inimigo", imagem: "images/soniccard.jpg" },
+    { id: "AC-008", nome: "Aceitação", tipo: "pensamentos", efeito: "nega um ataque inimigo", imagem: "images/soniccard.jpg" }
+
 ];
 
-const EFEITOS = {
-  "KD-001": efeitoDestruirCartaInimiga,
-  "KD-002": efeitoDestruirCartaInimiga,
-  "KD-003": efeitoDestruirCartaInimiga,
-  "KD-004": efeitoDestruirCartaInimiga,
-  "KD-005": efeitoDestruirCartaInimiga,
-  "KD-006": efeitoDestruirCartaInimiga,
-  "KD-007": efeitoDestruirCartaInimiga,
-  "KD-008": efeitoDestruirCartaInimiga,
-  "KD-009": efeitoDestruirCartaInimiga,
-  "KD-010": efeitoDestruirCartaInimiga,
-};
+// A tabela EFEITOS e as funções de efeito (efeitoDestruirCartaInimiga,
+// efeitoNegarAtaqueInimigo) foram movidas para o index.js.
+// Motivo: aqui em cards.js, essas funções ainda não existiam no momento
+// em que este arquivo era executado (cards.js carrega ANTES de index.js),
+// então referenciá-las aqui sempre vai gerar ReferenceError e travar
+// a execução deste script no meio do arquivo.

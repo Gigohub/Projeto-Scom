@@ -3,7 +3,7 @@ h1, h3 {
 }
 
 :root{
-    --card-height: clamp(60px, 10vh, 110px);
+    --card-height: clamp(70px, 13vh, 140px);
     --card-width: calc(var(--card-height) * 0.71); /* mantém a proporção 157:220 original */
 }
 .card-container{
@@ -41,8 +41,14 @@ h1, h3 {
     transform: rotateY(180deg);
 }
 
-.card:hover .card-inner{
+.card:not(.card-oculta):hover .card-inner{
     transform: rotateY(180deg);
+}
+
+/* Cancela a rotação própria do verso para cartas ocultas,
+   já que elas nunca vão "virar" - o verso deve ficar sempre de frente */
+.card-oculta .card-back {
+  transform: none;
 }
 
 .card-arte {
@@ -137,10 +143,10 @@ c--card-width: 157px;
 
 .hud-vida {
   display: flex;
-  gap: 20px;
+  flex-direction: column; /* na barra lateral estreita, empilha em vez de lado a lado */
+  gap: 4px;
   color: #fff;
   font-weight: bold;
-  margin-top: 6px;
 }
 
 .hand-container{
@@ -153,26 +159,19 @@ c--card-width: 157px;
 }
 
 #log-jogo {
-  max-height: 140px;
+  flex: 1;            /* ocupa o espaço que sobrar na barra lateral */
+  min-height: 0;       /* necessário para o overflow-y funcionar dentro de um flex item */
   overflow-y: auto;
   background: rgba(0,0,0,0.65);
   color: #fff;
   padding: 8px 12px;
-  margin: 10px;
   border-radius: 6px;
   font-size: 13px;
+  box-sizing: border-box;
 }
 #log-jogo h3 { margin: 0 0 6px 0; font-size: 14px; }
 #log-jogo ul { list-style: none; margin: 0; padding: 0; }
 #log-jogo li { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-
-.hud-vida {
-  display: flex;
-  gap: 20px;
-  color: #fff;
-  font-weight: bold;
-  margin: 6px 10px;
-}
 
 .deck-slot {
   position: relative;
@@ -198,13 +197,58 @@ html, body{
     background: #1b1b1b;
 }
 
+/* Layout principal: barra lateral (esquerda) + tabuleiro (direita).
+   Antes era "column" (tudo empilhado verticalmente); agora é "row",
+   então a barra lateral ocupa LARGURA, não ALTURA — sobra muito mais
+   espaço vertical para as cartas. */
 body {
-  color: #f2f2f2; /* texto claro por padrão, para tudo que NÃO for carta */
+  color: #f2f2f2;
   font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
-header, #log-jogo, .hud-vida{
-    flex-shrink: 0; /* nunca deixa esses elementos encolherem para abrir espaço pro tabuleiro */
+/* A barra lateral: título, botão de fase, HUD de vida e log de mensagens */
+header{
+    flex-shrink: 0;     /* nunca encolhe, largura sempre fixa */
+    width: 200px;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;   /* se o conteúdo da barra crescer, rola só ela, não a página */
+    background: #101014;
+    border-right: 2px solid #2a2a2e;
+}
+
+.header-title-container h1{
+    font-size: 20px;
+    margin: 0;
+}
+
+.controles-turno{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* O tabuleiro (área do oponente + área do jogador) ocupa TODO o espaço
+   restante ao lado da barra lateral, distribuído em coluna */
+.tabuleiro{
+    flex: 1;            /* preenche o resto da largura, depois de reservar os 200px do header */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* distribui oponente/jogador nos 100vh disponíveis */
+    align-items: center;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 6px;
+    overflow: hidden;
 }
 
 .area-oponente, .area-jogador{

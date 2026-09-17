@@ -1,4 +1,5 @@
 let selectedCard = null;
+let jogoTerminado = false; // NOVO: trava o jogo assim que alguém perde
 
 function gerarCarta(carta){
     const cardDiv = document.createElement("div");
@@ -55,6 +56,7 @@ function renderhandOponent(oponente) {
 
   oponente.mao.forEach(() => {
     const costas = document.createElement("div");
+    // "card-oculta" garante que o CSS não tente virar essa carta ao passar o mouse
     costas.classList.add("card", "card-oculta");
     costas.innerHTML = `
       <div class="card-inner">
@@ -74,6 +76,7 @@ function podeInvocar() {
 }
 
 function putInCamp(idCarta){
+    if (jogoTerminado) return;
     if (!podeInvocar()) {
         logMensagem("Só é possível colocar cartas na Fase Principal, no seu turno.");
         return;
@@ -155,6 +158,7 @@ function criarJogador(nome, ehIA = false) {
     nome: nome,
     ehIA: ehIA,
     vidaPontos: 4000,
+    escudoAtivo: false, // NOVO: usado pelo efeito "Aceitação" (nega o próximo ataque)
     deck: cards_catalog.map((carta) => ({ ...carta })),
     mao: [],
     campo: {
@@ -176,10 +180,9 @@ const turnState = {
 
 const ORDEM_DE_FASES = ["compra", "principal", "batalha", "final"];
 
-// ===== ESTA É A FUNÇÃO QUE ESTAVA QUEBRADA =====
-// Antes, o "}" de fechamento vinha cedo demais, e todo o código abaixo
-// rodava sozinho, fora da função, assim que o script carregava.
 function onNextPhase() {
+  if (jogoTerminado) return; // NOVO: nenhuma fase avança depois do fim de jogo
+
   limparSelecao();
   limparEventosAtaque();
   atualizarBotoesDeEfeito();
@@ -205,20 +208,32 @@ function onNextPhase() {
       habilitarAtaqueJogador();
     }
   }
-} // <- fechamento correto, tudo que precisa rodar A CADA fase fica DENTRO
+}
 
+// ===== CORRIGIDA: agora respeita o tipo da carta (action x pensamentos) =====
 function iajogarcarta() {
     if (turnState.invocacoesNesteTurno >= 1) return;
+    if (oponente.mao.length === 0) return;
 
-    const slotsLivres = oponente.campo.actions
-        .map((carta, indice) => (carta === null ? indice : null))
-        .filter((indice) => indice !== null);
+    const monstrosNaMao = oponente.mao.filter((c) => c.tipo === "action");
+    const pensamentosNaMao = oponente.mao.filter((c) => c.tipo === "pensamentos");
 
-    if (slotsLivres.length === 0 || oponente.mao.length === 0) return;
+    const slotsMonstroLivres = oponente.campo.actions
+        .map((c, i) => (c === null ? i : null))
+        .filter((i) => i !== null);
 
-    const melhorCarta = [...oponente.mao].sort((a, b) => b.atk - a.atk)[0];
-    colocarCartaNoCampo(oponente, melhorCarta.id, "actions", slotsLivres[0]);
-    turnState.invocacoesNesteTurno++;
+    const slotsPensamentoLivres = oponente.campo.pensamentos
+        .map((c, i) => (c === null ? i : null))
+        .filter((i) => i !== null);
+
+    if (monstrosNaMao.length > 0 && slotsMonstroLivres.length > 0) {
+        const melhorMonstro = [...monstrosNaMao].sort((a, b) => b.atk - a.atk)[0];
+        colocarCartaNoCampo(oponente, melhorMonstro.id, "actions", slotsMonstroLivres[0]);
+        turnState.invocacoesNesteTurno++;
+    } else if (pensamentosNaMao.length > 0 && slotsPensamentoLivres.length > 0) {
+        colocarCartaNoCampo(oponente, pensamentosNaMao[0].id, "pensamentos", slotsPensamentoLivres[0]);
+        turnState.invocacoesNesteTurno++;
+    }
 }
 
 function iaAtacar() {
@@ -241,28 +256,30 @@ function iaAtacar() {
 }
 
 function executarTurnoIA(fase) {
+    if (jogoTerminado) return;
     switch (fase) {
         case "compra":
             comprarCarta(oponente);
-            setTimeout(avancarFase, 800);
+            setTimeout(avancarFase, 1500);
             break;
         case "principal":
             iajogarcarta();
-            setTimeout(avancarFase, 800);
+            setTimeout(avancarFase, 1500);
             break;
         case "batalha":
             iaAtacar();
-            setTimeout(avancarFase, 800);
+            setTimeout(avancarFase, 1500);
             break;
         case "final":
             setTimeout(avancarFase, 500);
             break;
         default:
-            setTimeout(avancarFase, 500);
+            setTimeout(avancarFase, 1500);
     }
 }
 
 function avancarFase() {
+    if (jogoTerminado) return;
     const indiceAtual = ORDEM_DE_FASES.indexOf(turnState.fase);
     if (indiceAtual === ORDEM_DE_FASES.length - 1) {
         passarTurno();
@@ -299,12 +316,14 @@ function iniciarPartida() {
 document.addEventListener("DOMContentLoaded", () => {
     iniciarPartida();
     document.querySelector("#next-phase-button").addEventListener("click", () => {
+        if (jogoTerminado) return;
         if (turnState.jogadorDaVez.ehIA) return;
         avancarFase();
     });
 });
 
 function habilitarAtaqueJogador() {
+    if (jogoTerminado) return;
     document.querySelectorAll("#jogador-monstros .field-slot.ocupado").forEach((slot) => {
         const numeroSlot = Number(slot.dataset.slot);
         const cartaAtacante = jogador.campo.actions[numeroSlot];
@@ -317,11 +336,9 @@ function habilitarAtaqueJogador() {
     });
 }
 
-// ===== VERSÃO ÚNICA E CORRIGIDA (a duplicata antiga foi removida) =====
 function selecionarAlvoEAtacar(cartaAtacante) {
     const monstrosInimigos = oponente.campo.actions.filter((c) => c !== null);
 
-    // Campo do oponente vazio: ataque direto acontece na hora, sem escolher alvo
     if (monstrosInimigos.length === 0) {
         resolverAtaqueDireto(cartaAtacante, oponente);
         cartaAtacante.jaAtacou = true;
@@ -330,7 +347,6 @@ function selecionarAlvoEAtacar(cartaAtacante) {
         return;
     }
 
-    // Existem monstros: OBRIGATÓRIO escolher um deles, só slots ocupados ficam clicáveis
     document.querySelectorAll("#oponente-monstros .field-slot.ocupado").forEach((slot) => {
         slot.classList.add("selecionavel");
         slot.onclick = () => {
@@ -352,7 +368,13 @@ function limparSelecaoAlvo() {
     });
 }
 
+// ===== CORRIGIDA: agora checa o escudo do efeito "Aceitação" antes de aplicar dano =====
 function resolverAtaqueDireto(cartaAtacante, jogadorAlvo) {
+    if (jogadorAlvo.escudoAtivo) {
+        jogadorAlvo.escudoAtivo = false;
+        logMensagem(`${jogadorAlvo.nome} usou seu escudo e anulou o ataque de ${cartaAtacante.nome}!`);
+        return;
+    }
     jogadorAlvo.vidaPontos = Math.max(0, jogadorAlvo.vidaPontos - cartaAtacante.atk);
     atualizarHUD();
     logMensagem(`${cartaAtacante.nome} atacou diretamente! ${jogadorAlvo.nome} perdeu ${cartaAtacante.atk} pontos de vida.`);
@@ -360,6 +382,11 @@ function resolverAtaqueDireto(cartaAtacante, jogadorAlvo) {
 }
 
 function resolverBatalha(atacante, defensor, jogadorDefensor) {
+    if (jogadorDefensor.escudoAtivo) {
+        jogadorDefensor.escudoAtivo = false;
+        logMensagem(`${jogadorDefensor.nome} usou seu escudo e anulou o ataque de ${atacante.nome}!`);
+        return;
+    }
     if (atacante.atk > defensor.def) {
         removerCartaDoCampo(jogadorDefensor, defensor.id);
         logMensagem(`${atacante.nome} (ATK ${atacante.atk}) destruiu ${defensor.nome} (DEF ${defensor.def})!`);
@@ -383,12 +410,23 @@ function removerCartaDoCampo(jogadorDono, idCarta) {
     }
 }
 
+// ===== CORRIGIDA: agora trava o jogo de verdade =====
 function verificarVitoria() {
     if (jogador.vidaPontos <= 0) {
         logMensagem("Você perdeu! O oponente venceu a partida.");
+        encerrarPartida();
     } else if (oponente.vidaPontos <= 0) {
         logMensagem("Você venceu a partida!");
+        encerrarPartida();
     }
+}
+
+function encerrarPartida() {
+    jogoTerminado = true;
+    limparEventosAtaque();
+    limparSelecao();
+    const botaoFase = document.querySelector("#next-phase-button");
+    if (botaoFase) botaoFase.disabled = true;
 }
 
 function limparEventosAtaque() {
@@ -406,6 +444,7 @@ function atualizarHUD() {
     if (vidaOp) vidaOp.textContent = oponente.vidaPontos;
 }
 
+// ===== CORRIGIDA: mantém só as 5 mensagens mais recentes =====
 function logMensagem(texto) {
   console.log(texto);
   const lista = document.querySelector("#log-lista");
@@ -413,6 +452,10 @@ function logMensagem(texto) {
   const item = document.createElement("li");
   item.textContent = texto;
   lista.appendChild(item);
+
+  while (lista.children.length > 5) {
+      lista.removeChild(lista.firstElementChild);
+  }
   lista.scrollTop = lista.scrollHeight;
 }
 
@@ -438,20 +481,55 @@ function atualizarBotoesDeEfeito() {
     });
 }
 
+// ===== NOVO: funções de efeito individuais + tabela EFEITOS =====
+// Ficam aqui (index.js), não em cards.js, porque cards.js carrega ANTES
+// deste arquivo — se a tabela EFEITOS estivesse lá, essas funções ainda
+// não existiriam no momento em que o objeto fosse montado.
+
+function efeitoDestruirCartaInimiga(jogadorDono, carta) {
+    const alvo = oponente.campo.actions.find((c) => c !== null);
+    if (!alvo) {
+        logMensagem("O oponente não tem cartas no campo para destruir.");
+        return false; // efeito falhou: não deve ser marcado como "usado"
+    }
+    removerCartaDoCampo(oponente, alvo.id);
+    logMensagem(`${carta.nome} ativou seu efeito e destruiu ${alvo.nome}!`);
+    return true;
+}
+
+function efeitoNegarAtaqueInimigo(jogadorDono, carta) {
+    jogadorDono.escudoAtivo = true;
+    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: o próximo ataque recebido será anulado.`);
+    return true;
+}
+
+const EFEITOS = {
+  "KD-001": efeitoDestruirCartaInimiga,
+  "KD-002": efeitoDestruirCartaInimiga,
+  "KD-003": efeitoDestruirCartaInimiga,
+  "KD-004": efeitoDestruirCartaInimiga,
+  "KD-005": efeitoDestruirCartaInimiga,
+  "KD-006": efeitoDestruirCartaInimiga,
+  "KD-007": efeitoDestruirCartaInimiga,
+  "KD-008": efeitoDestruirCartaInimiga,
+  "KD-009": efeitoDestruirCartaInimiga,
+  "KD-010": efeitoDestruirCartaInimiga,
+  "AC-001": efeitoNegarAtaqueInimigo,
+};
+
+// ===== CORRIGIDA: agora consulta a tabela EFEITOS em vez de um if fixo =====
 function ativarEfeito(jogadorDono, carta) {
     if (carta.efeitoUsado) {
         logMensagem(`${carta.nome} já usou seu efeito nesta partida.`);
         return;
     }
 
-    if (carta.id.startsWith("KD-")) {
-        const alvo = oponente.campo.actions.find((c) => c !== null);
-        if (!alvo) {
-            logMensagem("O oponente não tem cartas no campo para destruir.");
-            return;
-        }
-        removerCartaDoCampo(oponente, alvo.id);
-        logMensagem(`${carta.nome} ativou seu efeito e destruiu ${alvo.nome}!`);
-        carta.efeitoUsado = true;
+    const funcaoDoEfeito = EFEITOS[carta.id];
+    if (!funcaoDoEfeito) {
+        logMensagem(`${carta.nome} não tem um efeito programado ainda.`);
+        return;
     }
+
+    const sucesso = funcaoDoEfeito(jogadorDono, carta);
+    if (sucesso) carta.efeitoUsado = true;
 }
