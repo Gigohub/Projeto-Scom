@@ -1,11 +1,8 @@
 let selectedCard = null;
 let jogoTerminado = false; // NOVO: trava o jogo assim que alguém perde
 
-function gerarCarta(carta){
-    const cardDiv = document.createElement("div");
-    cardDiv.classList.add("card");
-    cardDiv.dataset.id = carta.id;
 
+function construirMarkupCarta(carta){
     const statsHtml = carta.tipo === "action"
       ? `<div class="card-stats">
             <span class="atk">ATK/${carta.atk}</span>
@@ -16,7 +13,7 @@ function gerarCarta(carta){
         ? `<span class="card-nivel">${"★".repeat(carta.nivel)}</span>`
         : "";
 
-    cardDiv.innerHTML = `
+    return `
     <div class="card-inner">
       <div class="card-front card-${carta.tipo.toLowerCase()}">
         <div class="card-header">
@@ -34,8 +31,38 @@ function gerarCarta(carta){
       </div>
     </div>
   `;
+}
 
-  return cardDiv;
+function gerarCarta(carta){
+    const cardDiv = document.createElement("div");
+    cardDiv.classList.add("card");
+    cardDiv.dataset.id = carta.id;
+    cardDiv.innerHTML = construirMarkupCarta(carta);
+
+    // Ao passar o mouse, mostra essa mesma carta ampliada na barra lateral.
+    // Ao tirar o mouse, esconde o preview de novo.
+    cardDiv.addEventListener("mouseenter", () => mostrarPreview(carta));
+    cardDiv.addEventListener("mouseleave", () => esconderPreview());
+
+    return cardDiv;
+}
+
+// Preenche a caixa #preview-carta (na barra lateral) com uma versão
+// ampliada da carta. Reaproveita construirMarkupCarta() para não duplicar
+// a montagem do HTML — só muda o tamanho, via CSS (#preview-carta é maior
+// que .card no tabuleiro).
+function mostrarPreview(carta) {
+    const preview = document.querySelector("#preview-carta");
+    if (!preview) return;
+    preview.innerHTML = construirMarkupCarta(carta);
+    preview.classList.add("visivel");
+}
+
+function esconderPreview() {
+    const preview = document.querySelector("#preview-carta");
+    if (!preview) return;
+    preview.classList.remove("visivel");
+    preview.innerHTML = "";
 }
 
 function renderHand(jogadorAlvo){
@@ -69,20 +96,30 @@ function renderhandOponent(oponente) {
   });
 }
 
-function podeInvocar() {
-    return turnState.jogadorDaVez === jogador
-        && turnState.fase === "principal"
-        && turnState.invocacoesNesteTurno < 1;
+function podeInvocar(tipoCarta) {
+    const turnoCorreto = turnState.jogadorDaVez === jogador && turnState.fase === "principal";
+    if (!turnoCorreto) return false;
+
+    // A regra "1 por turno" só vale para cartas de ação (monstros).
+    // Cartas de pensamentos podem ser colocadas quantas vezes o jogador quiser.
+    if (tipoCarta === "action") {
+        return turnState.invocacoesNesteTurno < 1;
+    }
+    return true;
 }
 
 function putInCamp(idCarta){
     if (jogoTerminado) return;
-    if (!podeInvocar()) {
-        logMensagem("Só é possível colocar cartas na Fase Principal, no seu turno.");
-        return;
-    }
     const carta = jogador.mao.find((c) => c.id === idCarta);
     if (!carta) return;
+
+    if (!podeInvocar(carta.tipo)) {
+        const motivo = carta.tipo === "action"
+            ? "Você já colocou uma carta de ação neste turno."
+            : "Só é possível colocar cartas na Fase Principal, no seu turno.";
+        logMensagem(motivo);
+        return;
+    }
     selectedCard = idCarta;
     freeSlots(carta.tipo);
 }
@@ -104,7 +141,11 @@ function onSlotClicado(event){
     const numeroSlot = Number(slot.dataset.slot);
 
     colocarCartaNoCampo(jogador, selectedCard, tipoLinha, numeroSlot);
-    turnState.invocacoesNesteTurno++;
+
+    // Só conta para o limite de "1 por turno" quando é uma carta de ação
+    if (tipoLinha === "actions") {
+        turnState.invocacoesNesteTurno++;
+    }
 
     limparSelecao();
     atualizarBotoesDeEfeito();
@@ -205,34 +246,51 @@ function onNextPhase() {
     if (turnState.fase === "compra") {
       comprarCarta(jogador);
     } else if (turnState.fase === "batalha") {
-      habilitarAtaqueJogador();
+      // Regra oficial do TCG: quem começa a partida não pode atacar no turno 1
+      // (evita a vantagem injusta de já sair batendo antes do oponente jogar).
+      if (turnState.numeroDoTurno === 1) {
+        logMensagem("Não é permitido atacar no primeiro turno da partida.");
+      } else {
+        habilitarAtaqueJogador();
+      }
     }
   }
 }
 
-// ===== CORRIGIDA: agora respeita o tipo da carta (action x pensamentos) =====
+// ===== CORRIGIDA: 1 monstro por turno (como o jogador), mas QUANTAS
+// cartas de pensamentos a IA quiser, contanto que tenha carta e slot livre =====
 function iajogarcarta() {
-    if (turnState.invocacoesNesteTurno >= 1) return;
     if (oponente.mao.length === 0) return;
 
-    const monstrosNaMao = oponente.mao.filter((c) => c.tipo === "action");
-    const pensamentosNaMao = oponente.mao.filter((c) => c.tipo === "pensamentos");
+    // 1) até 1 carta de ação (monstro) por turno
+    if (turnState.invocacoesNesteTurno < 1) {
+        const monstrosNaMao = oponente.mao.filter((c) => c.tipo === "action");
+        const slotsMonstroLivres = oponente.campo.actions
+            .map((c, i) => (c === null ? i : null))
+            .filter((i) => i !== null);
 
-    const slotsMonstroLivres = oponente.campo.actions
+        if (monstrosNaMao.length > 0 && slotsMonstroLivres.length > 0) {
+            const melhorMonstro = [...monstrosNaMao].sort((a, b) => b.atk - a.atk)[0];
+            colocarCartaNoCampo(oponente, melhorMonstro.id, "actions", slotsMonstroLivres[0]);
+            turnState.invocacoesNesteTurno++;
+        }
+    }
+
+    // 2) todas as cartas de pensamentos que couberem, sem limite de quantidade
+    //    (recalcula mão/slots livres a cada volta do while, porque colocarCartaNoCampo
+    //     tira a carta da mão e ocupa o slot, mudando os dois arrays a cada chamada)
+    let pensamentosNaMao = oponente.mao.filter((c) => c.tipo === "pensamentos");
+    let slotsPensamentoLivres = oponente.campo.pensamentos
         .map((c, i) => (c === null ? i : null))
         .filter((i) => i !== null);
 
-    const slotsPensamentoLivres = oponente.campo.pensamentos
-        .map((c, i) => (c === null ? i : null))
-        .filter((i) => i !== null);
-
-    if (monstrosNaMao.length > 0 && slotsMonstroLivres.length > 0) {
-        const melhorMonstro = [...monstrosNaMao].sort((a, b) => b.atk - a.atk)[0];
-        colocarCartaNoCampo(oponente, melhorMonstro.id, "actions", slotsMonstroLivres[0]);
-        turnState.invocacoesNesteTurno++;
-    } else if (pensamentosNaMao.length > 0 && slotsPensamentoLivres.length > 0) {
+    while (pensamentosNaMao.length > 0 && slotsPensamentoLivres.length > 0) {
         colocarCartaNoCampo(oponente, pensamentosNaMao[0].id, "pensamentos", slotsPensamentoLivres[0]);
-        turnState.invocacoesNesteTurno++;
+
+        pensamentosNaMao = oponente.mao.filter((c) => c.tipo === "pensamentos");
+        slotsPensamentoLivres = oponente.campo.pensamentos
+            .map((c, i) => (c === null ? i : null))
+            .filter((i) => i !== null);
     }
 }
 
@@ -267,7 +325,11 @@ function executarTurnoIA(fase) {
             setTimeout(avancarFase, 1500);
             break;
         case "batalha":
-            iaAtacar();
+            if (turnState.numeroDoTurno === 1) {
+                logMensagem("A IA não pode atacar no primeiro turno da partida.");
+            } else {
+                iaAtacar();
+            }
             setTimeout(avancarFase, 1500);
             break;
         case "final":
@@ -503,6 +565,7 @@ function efeitoNegarAtaqueInimigo(jogadorDono, carta) {
     return true;
 }
 
+
 const EFEITOS = {
   "KD-001": efeitoDestruirCartaInimiga,
   "KD-002": efeitoDestruirCartaInimiga,
@@ -515,6 +578,11 @@ const EFEITOS = {
   "KD-009": efeitoDestruirCartaInimiga,
   "KD-010": efeitoDestruirCartaInimiga,
   "AC-001": efeitoNegarAtaqueInimigo,
+  "AC-002": efeitoNegarAtaqueInimigo,
+  "AC-003": efeitoNegarAtaqueInimigo,
+  "AC-004": efeitoNegarAtaqueInimigo,
+  "AC-005": efeitoNegarAtaqueInimigo,
+
 };
 
 // ===== CORRIGIDA: agora consulta a tabela EFEITOS em vez de um if fixo =====
@@ -531,5 +599,23 @@ function ativarEfeito(jogadorDono, carta) {
     }
 
     const sucesso = funcaoDoEfeito(jogadorDono, carta);
-    if (sucesso) carta.efeitoUsado = true;
+    if (!sucesso) return;
+
+    carta.efeitoUsado = true;
+
+    if (carta.tipo === "pensamentos") {
+        const indice = jogadorDono.campo.pensamentos.findIndex((c) => c && c.id === carta.id);
+        if (indice !== -1) {
+            jogadorDono.campo.pensamentos[indice] = null;
+
+            const prefixo = jogadorDono.ehIA ? "oponente" : "jogador";
+            const slot = document.querySelector(`#${prefixo}-magias-armadilhas .field-slot[data-slot="${indice}"]`);
+            if (slot) {
+                slot.innerHTML = "";
+                slot.classList.remove("ocupado");
+            }
+        }
+    }
+
+    atualizarBotoesDeEfeito();
 }

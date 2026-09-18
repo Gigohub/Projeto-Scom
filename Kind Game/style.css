@@ -3,7 +3,7 @@ h1, h3 {
 }
 
 :root{
-    --card-height: clamp(70px, 13vh, 140px);
+    --card-height: clamp(50px, 9vh, 95px);
     --card-width: calc(var(--card-height) * 0.71); /* mantém a proporção 157:220 original */
 }
 .card-container{
@@ -281,4 +281,130 @@ header{
 
 .card-front, .card-front * {
   color: #1a1a1a;
+}
+
+/* ===========================================================
+   RESPONSIVO — só se aplica quando a tela é estreita (celular).
+   Tudo acima desta linha continua valendo normalmente em telas
+   largas; as regras abaixo SOBRESCREVEM só o necessário quando
+   a largura da tela é 700px ou menos.
+   =========================================================== */
+@media (max-width: 700px) {
+
+  /* No desktop, body é "row" (barra lateral ao lado do tabuleiro).
+     No celular, isso é invertido para "column": a barra vira uma
+     faixa fina no TOPO, e o tabuleiro ocupa o resto, abaixo dela. */
+  body {
+    flex-direction: column;
+  }
+
+  /* A barra lateral deixa de ter largura fixa de 200px (que ocuparia
+     mais da metade da tela de um celular) e vira uma faixa no topo,
+     com altura limitada para sobrar espaço para o tabuleiro. */
+  header {
+    width: 100%;
+    height: auto;
+    max-height: 22vh;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 6px;
+    border-right: none;
+    border-bottom: 2px solid #2a2a2e;
+  }
+
+  /* Cada bloco dentro da barra (título, controles, HUD, log) diminui
+     de fonte e alguns passam a ocupar a largura toda (flex-basis: 100%),
+     empilhando de forma compacta em vez de tentar caber lado a lado. */
+  .header-title-container {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+  .header-title-container h1 {
+    font-size: 14px;
+  }
+
+  .controles-turno {
+    flex: 1 1 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  .hud-vida {
+    flex: 1 1 auto;
+    flex-direction: row;
+    gap: 8px;
+    font-size: 10px;
+  }
+
+  /* O log de mensagens fica bem mais baixo no celular, só o suficiente
+     para mostrar 1-2 linhas por vez (ele já rola sozinho por dentro). */
+  #log-jogo {
+    flex: 1 1 100%;
+    max-height: 40px;
+    font-size: 9px;
+  }
+  #log-jogo h3 {
+    font-size: 10px;
+  }
+
+  /* O tabuleiro ganha menos preenchimento nas bordas para aproveitar
+     cada pixel de largura disponível */
+  .tabuleiro {
+    padding: 2px;
+  }
+
+  /* As cartas encolhem mais um pouco no celular, já que agora dividem
+     a largura da tela com margens bem menores */
+  :root {
+    --card-height: clamp(38px, 8vh, 65px);
+  }
+
+  .field-row {
+    gap: 3px;
+  }
+
+  .hand-container {
+    gap: 4px;
+    padding: 3px;
+  }
+}
+
+
+/* ===========================================================
+   PREVIEW AMPLIADO — caixa fixa na barra lateral, acima do log
+   de mensagens. Fica vazia e "invisível" (opacity: 0) até que
+   mostrarPreview() (index.js) preencha ela com o HTML de uma
+   carta e adicione a classe "visivel".
+   =========================================================== */
+#preview-carta {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 157 / 220; /* mesma proporção das cartas do tabuleiro */
+  max-height: 220px;
+  flex-shrink: 0; /* nunca deixa essa caixa encolher para abrir espaço pro log */
+  border: 2px dashed #333;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none; /* garante que o preview nunca "rouba" o clique do mouse */
+}
+
+#preview-carta.visivel {
+  opacity: 1;
+  border-style: solid;
+  border-color: #ffd700;
+}
+
+/* No celular não existe "passar o mouse" (hover) de verdade, então o
+   preview nunca seria acionado — melhor liberar esse espaço pro log */
+@media (max-width: 700px) {
+  #preview-carta {
+    display: none;
+  }
 }
