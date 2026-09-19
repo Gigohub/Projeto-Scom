@@ -200,6 +200,7 @@ function criarJogador(nome, ehIA = false) {
     ehIA: ehIA,
     vidaPontos: 4000,
     escudoAtivo: false, // NOVO: usado pelo efeito "Aceitação" (nega o próximo ataque)
+    reducaoDano: false, //para o efeito escute
     deck: cards_catalog.map((carta) => ({ ...carta })),
     mao: [],
     campo: {
@@ -449,6 +450,11 @@ function resolverBatalha(atacante, defensor, jogadorDefensor) {
         logMensagem(`${jogadorDefensor.nome} usou seu escudo e anulou o ataque de ${atacante.nome}!`);
         return;
     }
+    if (jogadorDefensor.reducaoDano){
+        jogadorDefensor.reducaoDano = false;
+         logMensagem(`${jogadorDono.nome} escutou ${atacante.nome}. o próximo ataque recebido será reduzido.`);
+         return;
+    }
     if (atacante.atk > defensor.def) {
         removerCartaDoCampo(jogadorDefensor, defensor.id);
         logMensagem(`${atacante.nome} (ATK ${atacante.atk}) destruiu ${defensor.nome} (DEF ${defensor.def})!`);
@@ -565,6 +571,36 @@ function efeitoNegarAtaqueInimigo(jogadorDono, carta) {
     return true;
 }
 
+function DescansoBao(jogadorDono, carta){
+     jogadorDono.vidaPontos += 1000;
+    atualizarHUD();
+    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: foi restaurado 1000 de LP`);
+    return true;
+}
+
+function CalmaCaykeCalma(_JogadorDono, carta){
+    comprarCarta(jogador);
+    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: foi comprado uma carta`);
+    return true;
+}
+
+function yugixd(jogadorDono, carta) {
+    jogadorDono.vidaPontos += 100;
+    oponente.vidaPontos = Math.max(0, oponente.vidaPontos - 100);
+
+    atualizarHUD();
+    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: PODE SIM!! ganhou 100 LP e o oponente perdeu 100 LP!`);
+    verificarVitoria();
+
+    return true;
+}
+
+function escute(jogadorDono, carta){
+    jogadorDono.reducaoDano = true;
+    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: o próximo ataque recebido será anulado.`);
+    return true;
+}
+
 
 const EFEITOS = {
   "KD-001": efeitoDestruirCartaInimiga,
@@ -572,17 +608,21 @@ const EFEITOS = {
   "KD-003": efeitoDestruirCartaInimiga,
   "KD-004": efeitoDestruirCartaInimiga,
   "KD-005": efeitoDestruirCartaInimiga,
-  "KD-006": efeitoDestruirCartaInimiga,
-  "KD-007": efeitoDestruirCartaInimiga,
-  "KD-008": efeitoDestruirCartaInimiga,
-  "KD-009": efeitoDestruirCartaInimiga,
-  "KD-010": efeitoDestruirCartaInimiga,
   "AC-001": efeitoNegarAtaqueInimigo,
   "AC-002": efeitoNegarAtaqueInimigo,
   "AC-003": efeitoNegarAtaqueInimigo,
   "AC-004": efeitoNegarAtaqueInimigo,
   "AC-005": efeitoNegarAtaqueInimigo,
-
+  "DS-001": DescansoBao,
+  "DS-002": DescansoBao,
+  "DS-003": DescansoBao,
+  "DS-004": DescansoBao,
+  "CM-001": CalmaCaykeCalma,
+  "CM-002": CalmaCaykeCalma,
+  "CM-003": CalmaCaykeCalma,
+  "YG-001": yugixd,
+  "YG-002": yugixd,
+  "YG-003": yugixd,
 };
 
 // ===== CORRIGIDA: agora consulta a tabela EFEITOS em vez de um if fixo =====

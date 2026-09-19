@@ -24,25 +24,25 @@
         <span id="turno-atual">Turno: 1</span>
         <span id="fase-atual">Fase: COMPRA (Jogador)</span>
     </div>
-    <div class="hud-vida">
-        <span class="vida-label">Você: <span id="vida-jogador">4000</span> LP</span>
-        <span class="vida-label">Oponente: <span id="vida-oponente">4000</span> LP</span>
-    </div>
+    
     <div class="hud-vida">
     <span class="vida-label">Você: <span id="vida-jogador">4000</span> LP</span>
     <span class="vida-label">Oponente: <span id="vida-oponente">4000</span> LP</span>
     </div>
       <div id="preview-carta"></div>  <!-- ADICIONE ESTA LINHA -->
-      <div id="log-jogo">
-    <h3>Status da Partida</h3>
-    <ul id="log-lista"></ul>
-</div>
+    </div>
     <div id="log-jogo">
         <h3>Status da Partida</h3>
         <ul id="log-lista"></ul>
     </div>
 </header>
-    
+
+    <div id="popup-vitoria" class="popup-overlay">
+  <div class="popup-caixa">
+    <p id="popup-vitoria-texto"></p>
+    <button id="popup-vitoria-fechar">Fechar</button>
+  </div>
+</div>
 
     <div class="tabuleiro">
     <div class="area-oponente">

@@ -76,6 +76,8 @@ c--card-width: 157px;
   border-radius: 8px;
   font-size: 10px;
   background: #e8d9b5; /* cor base (pergaminho) */
+  box-sizing: border-box; /* padding conta DENTRO da largura/altura, não vaza pra fora */
+  overflow: hidden; /* nada extrapola a borda arredondada do card */
 }
 
 .card-action {
@@ -92,20 +94,20 @@ c--card-width: 157px;
 
 .card-efeito {
   flex: 1;
+  min-height: 0; /* ESSENCIAL: sem isso, um texto longo força o item a crescer
+                    além do espaço da carta em vez de rolar por dentro — é a
+                    causa real do texto "vazando" para fora da borda */
+  min-width: 0;  /* mesma lógica, no eixo horizontal */
   font-size: 8px;
   line-height: 1.2;
   overflow-y: auto;
+  overflow-wrap: break-word; /* quebra palavras longas em vez de estourar a largura */
+  word-wrap: break-word;
+  text-align: center; /* pedido: efeito centralizado, não colado nas bordas */
   background: rgba(255, 255, 255, 0.6);
   padding: 3px;
   margin-top: 2px;
-}.card-efeito {
-  flex: 1;
-  font-size: 8px;
-  line-height: 1.2;
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.6);
-  padding: 3px;
-  margin-top: 2px;
+  box-sizing: border-box;
 }
 
 .card-stats {
@@ -407,4 +409,48 @@ header{
   #preview-carta {
     display: none;
   }
+}
+
+/* ===========================================================
+   POP-UP DE VITÓRIA — janela central que aparece sobre tudo o
+   resto (z-index alto) quando alguém vence, seja pelo combo das
+   5 cartas sagradas ou pela vida chegando a 0.
+   =========================================================== */
+.popup-overlay {
+  display: none; /* escondido por padrão */
+  position: fixed;
+  inset: 0; /* atalho para top:0; right:0; bottom:0; left:0 */
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-overlay.visivel {
+  display: flex; /* mostrarPopupVitoria() adiciona essa classe para revelar o popup */
+}
+
+.popup-caixa {
+  background: #1b1b1b;
+  border: 3px solid #ffd700;
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 320px;
+  text-align: center;
+  color: #f2f2f2;
+}
+
+.popup-caixa p {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.popup-caixa button {
+  margin-top: 14px;
+  padding: 6px 18px;
+  border: none;
+  border-radius: 6px;
+  background: #ffd700;
+  cursor: pointer;
+  font-weight: bold;
 }
