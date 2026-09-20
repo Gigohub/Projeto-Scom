@@ -45,7 +45,7 @@ function gerarCarta(carta){
     // isso dá tempo do cursor "viajar" até o painel de preview sem que ele
     // suma no meio do caminho. Veja agendarEsconderPreview() mais abaixo.
     cardDiv.addEventListener("mouseenter", () => mostrarPreview(carta));
-    cardDiv.addEventListener("mouseleave", () => agendarEsconderPreview());
+   // cardDiv.addEventListener("mouseleave", () => agendarEsconderPreview());
 
     return cardDiv;
 }
