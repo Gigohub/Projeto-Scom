@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kind Game </title>
+  <meta name="description" content="Kind Game é um jogo de cartas colecionáveis (TCG) para jogar no navegador, inspirado em Yu-Gi-Oh!. Nesse TCG voce não lutara contra algo fisico, mas contra o odio do mundo, sua arma? apenas sua gentileza, e é tudo q você precisa!">
+  <meta name="theme-color" content="#0f1020">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Kind Game - Jogo de cartas estratégico no navegador">
+  <meta property="og:description" content="use suas Ações e pensamentos para vencer o ódio contra um oponente IA. Sem instalar nada.">
+  <link rel="icon" href="images/kind.jpg" type="image/jpg">
+  <link rel="stylesheet" href="landing.css">
+  <script src="landing.js" defer></script>
+</head>
+<body>
+  <a class="pular-link" href="#conteudo">Ir para o conteúdo principal</a>
+
+  <!-- ===================== CABEÇALHO E NAVEGAÇÃO ===================== -->
+  <header class="topo">
+    <div class="topo__interno container">
+      <a class="marca" href="#inicio">Kind <span class="marca__destaque">Game</span></a>
+
+      <nav class="menu" aria-label="Principal">
+        <ul class="menu__lista">
+          <li><a class="botao botao--menu" href="#inicio">Início</a></li>
+          <li><a class="botao botao--menu" href="#enciclopedia">Enciclopédia</a></li>
+          <li><a class="botao botao--menu" href="#tutorial">Tutorial</a></li>
+          <li><a class="botao botao--menu" href="#sobre">Sobre</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo" tabindex="-1">
+
+    <!-- ===================== INÍCIO (HERO) ===================== -->
+    <section class="hero" id="inicio" aria-labelledby="titulo-hero">
+      <div class="hero__grade container">
+        <div class="hero__texto">
+          <p class="hero__etiqueta">Jogo de cartas TCG · Direto no navegador</p>
+          <h1 id="titulo-hero">Kind Game</h1>
+          <p class="hero__lead">Use suas Ações e pensamentos para vencer o ódio contra um oponente IA. Sem instalar nada.</p>
+          <div class="hero__acoes">
+            <a class="botao botao--primario botao--grande" href="index.html">Jogar agora</a>
+            <a class="botao botao--secundario botao--grande" href="#tutorial">Aprender a jogar</a>
+          </div>
+        </div>
+
+        <div class="hero__imagem">
+          <img src="images/kind_br.png" width="480" height="400"
+               alt="São dois tipos de cartas a serem utilizadas, actions e thinkings, sendo para ataque e defesa, e suporte respectivamente.">
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== NOVIDADES ===================== -->
+    <section class="secao secao--alt" id="novidades" aria-labelledby="titulo-novidades">
+      <div class="container">
+        <h2 id="titulo-novidades">Novidades</h2>
+        <p class="secao__intro">Veja as ultimas atualizações (commits) que ja estão em game!.</p>
+
+        <div class="grade grade--3">
+          
+
+          <article class="cartao">
+            <p class="cartao__meta"><time datetime="2026-09-18">18 de setembro de 2026</time> · Novo</p>
+            <h3>Cartas novas adicionadas!(Beta 0.0.3)</h3>
+            <p>Foram adicionadas novas cartas ao jogo! tendo o primeiro deck fechado do player, além da novidade, cartas Crossover, jogue com personagens de franquias famosas! adição: Sonic The Hedgehog, Naruto Uzumaki, Homem-Aranha, Yami Yugi, Abraço, Ouvinte, Descanso, Calma, Caminho, Verdade, Vida, Verbo e Luz.</p>
+          </article>
+
+          <article class="cartao">
+            <p class="cartao__meta"><time datetime="2026-09-16">16 de setembro de 2026</time> · Interface</p>
+            <h3>Adição das cartas Thinking e correção de bugs! (Beta 0.0.2)</h3>
+            <p>Foi adicionado as primeiras Cartas Thinking! (cartas suporte), agora o jogador poderá usar cartas para se defender de ataques ou até comprar mais cartas! foram corrigidos bugs visuais e mecanicos, removido: ataque direto no primeiro turno. Adicionado: efeito de cartas Action.</p>
+          </article>
+
+          <article class="cartao">
+            <p class="cartao__meta"><time datetime="2026-09-15">15 de setembro de 2026</time> · Correção</p>
+            <h3>Atualização visual e correção de bugs! (Beta 0.0.1)</h3>
+            <p>Nesse patch foi atualizado o hud do jogo, adicionando a vida dos players e feito a correção do bug de todas as cartas da mão do jogador estarem no mesmo espaço .</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== DESCRIÇÃO DO JOGO ===================== -->
+    <section class="secao" id="o-jogo" aria-labelledby="titulo-jogo">
+      <div class="container">
+        <h2 id="titulo-jogo">O jogo</h2>
+        <div class="texto-longo">
+          <p>O mundo ja esta cheio de ódio, cabe a você resolver isso. como? com amor é claro! se você amar ao próximo independente de qualquer coisa, o mundo se torna melhor pouco a pouco! em um deck de 42 cartas, você terá cartas de action e thinking para atacar/defender e dar suporte ao seu campo, use suas estratégias para esgotar a raiva de seu oponente, antes que suas energias se acabem! </p>
+          <p>Tudo é em português! Disponivel em celulares, tablets e computadores.</p>
+        </div>
+
+        <ul class="grade grade--4 lista-recursos">
+          <li class="cartao">
+            <h3>Duelo contra a IA</h3>
+            <p>Enfrente um oponente que escolhe suas jogadas sozinho e reage ao seu campo.</p>
+          </li>
+          <li class="cartao">
+            <h3>dois tipos de carta</h3>
+            <p>ações para atacar e defender, pensamentos para virar o jogo.</p>
+          </li>
+          <li class="cartao">
+            <h3>Turnos por fases</h3>
+            <p>Compra, principal, batalha e final: cada momento do turno tem suas próprias ações.</p>
+          </li>
+          <li class="cartao">
+            <h3>Sem instalação</h3>
+            <p>Abra o jogo no navegador e comece a duelar em segundos.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== ENCICLOPÉDIA DE CARTAS ===================== -->
+    <section class="secao secao--alt" id="enciclopedia" aria-labelledby="titulo-enciclopedia">
+      <div class="container">
+        <h2 id="titulo-enciclopedia">Enciclopédia de cartas</h2>
+        <div class="texto-longo">
+          <p>Consulte as cartas do jogo. Cada carta tem nome, tipo, ilustração e efeito. As Ações e personagens Crossover também mostram os valores de ataque (ATK) e defesa (DEF).</p>
+        </div>
+
+        <!-- Os filtros ficam ocultos até o JavaScript carregar (melhoria progressiva). -->
+        <form class="filtros" id="filtros" aria-label="Filtrar cartas" hidden>
+          <div class="campo">
+            <label for="busca-carta">Buscar por nome</label>
+            <input type="search" id="busca-carta" name="busca" autocomplete="off">
+          </div>
+
+          <fieldset class="filtros__tipos">
+            <legend>Tipo de carta</legend>
+            <button type="button" class="botao botao--filtro" data-filtro="todas" aria-pressed="true">Todas</button>
+            <button type="button" class="botao botao--filtro" data-filtro="Action" aria-pressed="false">Action</button>
+            <button type="button" class="botao botao--filtro" data-filtro="pensamentos" aria-pressed="false">Thinking</button>
+        </form>
+        <p class="filtros__resultado" id="resultado-filtro" role="status"></p>
+
+        <!-- TROCAR: cartas de exemplo. Copie aqui os dados reais do seu catálogo (cards.js). -->
+        <div class="grade grade--cartas" id="lista-cartas">
+
+          <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/kind.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action </figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Kind</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>3200</dd></div>
+                <div><dt>DEF</dt><dd>2000</dd></div>
+              </dl>
+              <p class="carta__efeito">Ato/Efeito: Seja Gentil com todos sem excessôes, seja paciente e legal com todos, pois você não sabe o que a pessoa esta passando e quais demonios ela esta enfrentando/ Gentileza: pode escolher uma carta de action do oponente e destrui-la</p>
+            </div>
+          </article>
+
+          <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/escutar.webp" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Ouvinte</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>1500</dd></div>
+                <div><dt>DEF</dt><dd>600</dd></div>
+              </dl>
+              <p class="carta__efeito">Ato/Efeito: As vezes quando a pessoa esta estressada e responde com odio, é porque teve muita coisa guardada dentro dela que não foi espressada, guardando um rancor que só pode ser retidado ao ser escutado por alguem. [qual a ultima vez que voce se propos a ouvir o desabafo de alguem?]/ Escutar:reduz o dano do proximo ataque pela metade.</p>
+            </div>
+          </article>
+
+          <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/abraco.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Abraço</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>2100</dd></div>
+                <div><dt>DEF</dt><dd>1200</dd></div>
+              </dl>
+              <p class="carta__efeito">"Ato: Quando você tem muitas aflições na vida, e o estresse começa a ficar maior a cada dia, um abraço pode aliviar as dores, como se compartilhase-mos a dor com o outro, [qual foi a ultima vez que voce abraçou alguem querido?].</p>
+            </div>
+          </article>
+
+           <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/soniccard.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Sonic The Hedgehog</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>3000</dd></div>
+                <div><dt>DEF</dt><dd>2000</dd></div>
+              </dl>
+              <p class="carta__efeito">História: A coisa mais Rapida Viva, um cara que ama aventuras e tem como mestre o vento que sopra livremente, ah e ele gosta de cachorro quente com chilli :D.</p>
+            </div>
+          </article>
+
+           <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/narutocard.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Naruto Uzumaki</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>2000</dd></div>
+                <div><dt>DEF</dt><dd>3000</dd></div>
+              </dl>
+              <p class="carta__efeito">Historia: Menosprezado por todos sem saber o motivo, esse garoto com determinação de ferro tem o sonho de se tornar Hokage e provar pra todos que até um fracassado pode mudar seu destino e se tornar o mais forte!.</p>
+            </div>
+          </article>
+
+          <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/Aranha.webp" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Homem-Aranha</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>2500</dd></div>
+                <div><dt>DEF</dt><dd>1500</dd></div>
+              </dl>
+              <p class="carta__efeito">Historia/Efeito: Picado por uma aranha radioativa, o garoto Peter Parker ganhou poderes de aranha! Porem por uma decisão ruim, seu tio Ben morre pelo bandito que Peter deixou escapar, fazendo o garoto entender que Com Grandes Poderes Vem Grandes Responsabilidades/Sentido Aranha: ative o efeito negando um ataque do oponente pelo custo de 500 de atk.</p>
+            </div>
+          </article>
+
+           <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/YUGI.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Yami Yugi</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>2500</dd></div>
+                <div><dt>DEF</dt><dd>2100</dd></div>
+              </dl>
+              <p class="carta__efeito">Historia/Efeito: O melhor duelista de YU-GI-OH! quando Yugi Moto resolve o enigma do milênio ele invoca o espirito do farao! só que por ser um shonen ele sabe como usar o 'poder do protagonista' né :]/ ROUBE 100 LP do seu oponente para voce xdxd</p>
+            </div>
+          </article>
+
+           <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/vida.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Vida</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>490</dd></div>
+                <div><dt>DEF</dt><dd>490</dd></div>
+              </dl>
+              <p class="carta__efeito">Efeito: Caso essa carta seja reunida com (Caminha, Verdade, Vida, Luz e Verbo) o jogador ganha a partida automaticamente</p>
+            </div>
+          </article>
+
+           <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/verdade.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Verdade</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>490</dd></div>
+                <div><dt>DEF</dt><dd>490</dd></div>
+              </dl>
+              <p class="carta__efeito">Efeito: Caso essa carta seja reunida com (Caminha, Verdade, Vida, Luz e Verbo) o jogador ganha a partida automaticamente</p>
+            </div>
+          </article>
+
+           <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/caminho.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Caminho</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>490</dd></div>
+                <div><dt>DEF</dt><dd>490</dd></div>
+              </dl>
+              <p class="carta__efeito">Efeito: Caso essa carta seja reunida com (Caminha, Verdade, Vida, Luz e Verbo) o jogador ganha a partida automaticamente</p>
+            </div>
+          </article>
+
+           <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/luz.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Luz</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>490</dd></div>
+                <div><dt>DEF</dt><dd>490</dd></div>
+              </dl>
+              <p class="carta__efeito">Efeito: Caso essa carta seja reunida com (Caminha, Verdade, Vida, Luz e Verbo) o jogador ganha a partida automaticamente</p>
+            </div>
+          </article>
+
+           <article class="carta" data-tipo="Action">
+            <figure class="carta__figura">
+              <img src="images/verbo.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de laranja com um olho dourado, representando um monstro.">
+              <figcaption class="carta__tipo">Action</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Verbo</h3>
+              <dl class="carta__stats">
+                <div><dt>ATK</dt><dd>490</dd></div>
+                <div><dt>DEF</dt><dd>490</dd></div>
+              </dl>
+              <p class="carta__efeito">Efeito: Caso essa carta seja reunida com (Caminha, Verdade, Vida, Luz e Verbo) o jogador ganha a partida automaticamente</p>
+            </div>
+          </article>
+
+          <article class="carta" data-tipo="pensamentos">
+            <figure class="carta__figura">
+              <img src="images/aceitacao.webp" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de verde-água com uma estrela de cinco pontas dentro de círculos, representando uma magia.">
+              <figcaption class="carta__tipo">Thinking</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Aceitação</h3>
+              <p class="carta__efeito">Aceitação: nega um ataque inimigo</p>
+            </div>
+          </article>
+
+          <article class="carta" data-tipo="pensamentos">
+            <figure class="carta__figura">
+              <img src="images/descanso.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de verde-água com uma estrela de cinco pontas dentro de círculos, representando uma magia.">
+              <figcaption class="carta__tipo">Thinking</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Descanso</h3>
+              <p class="carta__efeito">Cochilinho bom: recupera 1000 LP</p>
+            </div>
+          </article>
+
+          <article class="carta" data-tipo="pensamentos">
+            <figure class="carta__figura">
+              <img src="images/calma.jpg" width="320" height="240" loading="lazy"
+                   alt="Ilustração abstrata em tons de roxo com um círculo escuro cercado de pontas, representando uma armadilha.">
+              <figcaption class="carta__tipo">Thinking</figcaption>
+            </figure>
+            <div class="carta__corpo">
+              <h3 class="carta__nome">Calma</h3>
+              <p class="carta__efeito">Mantendo a Calma e pensando melhor: puxa uma carta do seu deck</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TUTORIAL / COMO JOGAR ===================== -->
+    <section class="secao" id="tutorial" aria-labelledby="titulo-tutorial">
+      <div class="container">
+        <h2 id="titulo-tutorial">Tutorial: como jogar</h2>
+
+        <div class="texto-longo">
+          <h3>Objetivo</h3>
+          <p>Reduza o ódio (LP) do oponente a zero antes que ele faça o mesmo com sua energia. Para isso, coloque suas ações e ataque no momento certo, ou use suportes para pensar a seu favor.</p>
+        </div>
+
+        <h3>Um turno, quatro fases</h3>
+        <ol class="fases" role="list">
+          <li class="cartao">
+            <h4>Compra</h4>
+            <p>Você compra uma carta do topo do seu deck embaralhado.</p>
+          </li>
+          <li class="cartao">
+            <h4>Principal</h4>
+            <p>Invoque cartas action, respeitando o limite de uma invocação por turno, e ative efeitos de cartas, tanto efeitos das cartas action como das cartas thinking.</p>
+          </li>
+          <li class="cartao">
+            <h4>Batalha</h4>
+            <p>Suas ações em campo podem "atacar". Cada uma "ataca" uma vez por turno.</p>
+          </li>
+          <li class="cartao">
+            <h4>Final</h4>
+            <p>Pode usar os efeitos das cartas ou passar para a vez do adversário.</p>
+          </li>
+        </ol>
+
+        <div class="texto-longo">
+          <h3>Regras de batalha</h3>
+          <ul>
+            <li>Escolha uma ação atacante e o alvo. caso você ataque uma ação com menos defesa, você destroí a carta defendendo, caso não, seu ataque é cancelado, caso não tenha cartas actions no campo de seu oponente, você o ataca diretamente! tirando os LPs dele com base no seu ataque.</li>
+            <li>Um monstro que já atacou no turno não pode atacar de novo.</li>
+          </ul>
+
+          <h3>Sua primeira partida em 5 passos</h3>
+          <ol class="passos">
+            <li>Clique em <strong>Jogar agora</strong> para abrir o jogo.</li>
+            <li>Confira as cartas da sua mão e escolha uma ação ou pensamento para invocar na fase principal.</li>
+            <li>Avance para a fase de batalha e "ataque" com sua ação, tanto alvos no campo oponente, quanto diretamente.</li>
+            <li>Caso não tenha mais efeitos para ativar, encerre o turno avançando até a fase final.</li>
+            <li>Acompanhe a jogada do oponente pelas mensagens na tela e prepare a próxima.</li>
+          </ol>
+        </div>
+
+        <aside class="dica">
+          <p><strong>Dica:</strong> o botão de ativar efeito só aparece nas fases em que aquele efeito pode ser usado. Se ele não aparece, confira em qual fase você está.</p>
+        </aside>
+
+        <p class="tutorial__cta">
+          <a class="botao botao--primario botao--grande" href="index.html">Pronto? Jogar agora</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== SOBRE ===================== -->
+    <section class="secao secao--alt" id="sobre" aria-labelledby="titulo-sobre">
+      <div class="container sobre__grade">
+        <div class="texto-longo">
+          <h2 id="titulo-sobre">Sobre o projeto</h2>
+          <p>O Kind Game, além de ser o projeto da disciplina de Sistemas Computacionais (SCOM) tem como objetivo fazer o jogador a pensar se reagir violência com violência é realmente a melhor escolha. Mas se, ao invés disso, oferecêssemos a outra face, e tentassemos entender o outro lado e resolver tudo com gentileza? ta ai o nome do jogo (Jogo gentil). o trabalho foi feito utilizando apenas html, javaScript e Css. </p>
+          <p>Esta página foi feita para a disciplina de SCOM (Trabalho Individual I), seguindo boas práticas de acessibilidade, responsividade e desempenho.</p>
+          <p class="aviso">Kind Game é um projeto educacional independente. Ele é apenas inspirado nas regras do Yu-Gi-Oh! TCG e não tem nenhuma afiliação com seus criadores ou detentores de marca. (por mais que o sonic possa me dar um processo se o projeto der futuro kkkkkk)</p>
+        </div>
+
+        <div class="cartao">
+          <h3>Ficha técnica</h3>
+          <dl class="ficha">
+            <div><dt>Autor</dt><dd>Caio Gabriel Pereira De Morais (GigoLow)</dd></div>
+            <div><dt>Disciplina</dt><dd>SCOM · Trabalho Individual I · 2026</dd></div>
+             <div><dt>Professor</dt><dd>Leopoldo André Dutra Lusquino Filho</dd></div>
+            <div><dt>Tecnologias</dt><dd>HTML5, CSS3 e JavaScript puro</dd></div>
+            <div><dt>Inspiração</dt><dd>Yu-Gi-Oh! TCG</dd></div>
+            <div><dt>Idioma</dt><dd>Português do Brasil</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================== RODAPÉ ===================== -->
+  <footer class="rodape">
+    <div class="rodape__interno container">
+      <p>© 2026 Kind Game · Projeto educacional</p>
+      <p><a href="#inicio">Voltar ao topo</a></p>
+    </div>
+  </footer>
+</body>
+</html>

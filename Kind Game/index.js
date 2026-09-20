@@ -1,5 +1,6 @@
 let selectedCard = null;
-let jogoTerminado = false; // NOVO: trava o jogo assim que alguém perde
+let jogoTerminado = false; // trava o jogo assim que alguém perde
+let timeoutEsconderPreview = null; // NOVO: controla o pequeno atraso antes de esconder o preview
 
 
 function construirMarkupCarta(carta){
@@ -40,9 +41,11 @@ function gerarCarta(carta){
     cardDiv.innerHTML = construirMarkupCarta(carta);
 
     // Ao passar o mouse, mostra essa mesma carta ampliada na barra lateral.
-    // Ao tirar o mouse, esconde o preview de novo.
+    // Ao tirar o mouse, AGENDAMOS o fechamento (em vez de fechar na hora) —
+    // isso dá tempo do cursor "viajar" até o painel de preview sem que ele
+    // suma no meio do caminho. Veja agendarEsconderPreview() mais abaixo.
     cardDiv.addEventListener("mouseenter", () => mostrarPreview(carta));
-    cardDiv.addEventListener("mouseleave", () => esconderPreview());
+    cardDiv.addEventListener("mouseleave", () => agendarEsconderPreview());
 
     return cardDiv;
 }
@@ -52,10 +55,25 @@ function gerarCarta(carta){
 // a montagem do HTML — só muda o tamanho, via CSS (#preview-carta é maior
 // que .card no tabuleiro).
 function mostrarPreview(carta) {
+    // Se já havia um "esconder" agendado (de uma carta anterior, ou do
+    // próprio preview), cancela: o mouse voltou a estar sobre uma carta/preview.
+    clearTimeout(timeoutEsconderPreview);
+
     const preview = document.querySelector("#preview-carta");
     if (!preview) return;
     preview.innerHTML = construirMarkupCarta(carta);
     preview.classList.add("visivel");
+}
+
+// NOVO: em vez de esconder na hora (esconderPreview direto), esperamos um
+// pequeno intervalo. Se, durante esse intervalo, o mouse entrar em OUTRA
+// carta ou no próprio painel de preview, o timeout é cancelado (por
+// mostrarPreview ou pelo listener de mouseenter do preview, registrado em
+// DOMContentLoaded). Só se o mouse realmente ficar fora de ambos por mais
+// de 150ms é que o preview some de verdade.
+function agendarEsconderPreview() {
+    clearTimeout(timeoutEsconderPreview);
+    timeoutEsconderPreview = setTimeout(esconderPreview, 150);
 }
 
 function esconderPreview() {
@@ -75,6 +93,11 @@ function renderHand(jogadorAlvo){
         });
         container.appendChild(cardElement);
     });
+
+    // NOVO: toda vez que a mão do jogador é redesenhada (ou seja, toda vez
+    // que ela muda — comprou carta, uma carta voltou, etc.), checamos se as
+    // 5 cartas do combo sagrado estão reunidas nela.
+    verificarComboSagrado(jogadorAlvo);
 }
 
 function renderhandOponent(oponente) {
@@ -94,6 +117,11 @@ function renderhandOponent(oponente) {
     `;
     container.appendChild(costas);
   });
+
+  // NOVO: o combo sagrado vale para qualquer jogador, então também checamos
+  // a mão do oponente aqui (sem nunca expor os dados dela na tela — a
+  // checagem olha só para o array `oponente.mao` internamente).
+  verificarComboSagrado(oponente);
 }
 
 function podeInvocar(tipoCarta) {
@@ -199,8 +227,8 @@ function criarJogador(nome, ehIA = false) {
     nome: nome,
     ehIA: ehIA,
     vidaPontos: 4000,
-    escudoAtivo: false, // NOVO: usado pelo efeito "Aceitação" (nega o próximo ataque)
-    reducaoDano: false, //para o efeito escute
+    escudoAtivo: false, // usado pelo efeito "Aceitação" (nega o próximo ataque)
+    reducaoDano: false, // usado pelo efeito "Ouvinte" (reduz o próximo dano recebido pela metade)
     deck: cards_catalog.map((carta) => ({ ...carta })),
     mao: [],
     campo: {
@@ -213,6 +241,9 @@ function criarJogador(nome, ehIA = false) {
 const jogador = criarJogador("Jogador", false);
 const oponente = criarJogador("Próximo (IA)", true);
 
+// NOVO: as 5 cartas que, reunidas na mesma mão, vencem a partida na hora.
+const COMBO_SAGRADO_IDS = ["CA-001", "VD-001", "VD-002", "VB-001", "LZ-001"];
+
 const turnState = {
   jogadorDaVez: null,
   fase: "compra",
@@ -223,7 +254,7 @@ const turnState = {
 const ORDEM_DE_FASES = ["compra", "principal", "batalha", "final"];
 
 function onNextPhase() {
-  if (jogoTerminado) return; // NOVO: nenhuma fase avança depois do fim de jogo
+  if (jogoTerminado) return; // nenhuma fase avança depois do fim de jogo
 
   limparSelecao();
   limparEventosAtaque();
@@ -258,8 +289,8 @@ function onNextPhase() {
   }
 }
 
-// ===== CORRIGIDA: 1 monstro por turno (como o jogador), mas QUANTAS
-// cartas de pensamentos a IA quiser, contanto que tenha carta e slot livre =====
+// 1 monstro por turno (como o jogador), mas QUANTAS cartas de
+// pensamentos a IA quiser, contanto que tenha carta e slot livre.
 function iajogarcarta() {
     if (oponente.mao.length === 0) return;
 
@@ -295,6 +326,74 @@ function iajogarcarta() {
     }
 }
 
+// NOVO: decide, carta por carta, se a IA deve ativar o efeito daquela carta
+// AGORA (na sua fase Principal/Final), com base no estado da partida —
+// vida da IA, vida do jogador e o que existe nos campos — em vez de usar
+// os efeitos de forma aleatória ou nunca usá-los.
+function deveAtivarEfeito(carta) {
+    const jogadorTemMonstros = jogador.campo.actions.some((c) => c !== null);
+
+    // Descanso (cura 1000 LP): só vale a pena quando a vida está baixa.
+    // Sem essa checagem, a IA gastaria a cura assim que a carta caísse na
+    // mão, mesmo estando com a vida cheia.
+    if (carta.id.startsWith("DS-")) {
+        return oponente.vidaPontos <= 2000;
+    }
+
+    // Aceitação / Ouvinte (efeitos defensivos, "armam" um escudo para o
+    // PRÓXIMO ataque que a IA receber): só compensa ativar se o jogador
+    // já tem monstros no campo capazes de atacar, e a vida da IA está
+    // em risco o suficiente para justificar "gastar" a carta agora.
+    if (carta.id.startsWith("AC-") || carta.id.startsWith("LT-")) {
+        return jogadorTemMonstros && oponente.vidaPontos <= 2500;
+    }
+
+    // Sentido Aranha (também defensivo, mas com custo de 500 ATK): a IA só
+    // paga esse custo se realmente existir uma ameaça no campo do jogador.
+    if (carta.id.startsWith("SM-")) {
+        return jogadorTemMonstros && oponente.vidaPontos <= 2500 && carta.atk >= 500;
+    }
+
+    // Kind (destrói uma carta de ação do oponente): só ativa se existir
+    // alvo — sem isso o efeito falha e é desperdiçado (efeitoUsado = true
+    // sem efeito nenhum).
+    if (carta.id.startsWith("KD-")) {
+        return jogadorTemMonstros;
+    }
+
+    // Calma (compra 1 carta): só quando a mão está ficando curta, para não
+    // esvaziar o deck sem necessidade.
+    if (carta.id.startsWith("CM-")) {
+        return oponente.mao.length <= 2;
+    }
+
+    // Yami Yugi (rouba 100 LP do oponente para si): boa para fechar o jogo
+    // quando a IA está atrás no placar de vida ou o jogador está por um fio.
+    if (carta.id.startsWith("YG-")) {
+        return oponente.vidaPontos < jogador.vidaPontos || jogador.vidaPontos <= 500;
+    }
+
+    return false;
+}
+
+// NOVO: percorre tudo que a IA tem no campo (monstros e pensamentos) e
+// ativa o efeito de cada carta cujo deveAtivarEfeito() disser que vale a
+// pena — reaproveitando o mesmo ativarEfeito() usado pelo botão do jogador.
+function iaUsarEfeitos() {
+    if (jogoTerminado) return;
+
+    const cartasNoCampo = [
+        ...oponente.campo.actions,
+        ...oponente.campo.pensamentos
+    ].filter((c) => c !== null && !c.efeitoUsado && EFEITOS[c.id]);
+
+    cartasNoCampo.forEach((carta) => {
+        if (deveAtivarEfeito(carta)) {
+            ativarEfeito(oponente, carta);
+        }
+    });
+}
+
 function iaAtacar() {
     const atacantes = oponente.campo.actions.filter((c) => c !== null && !c.jaAtacou);
 
@@ -323,6 +422,7 @@ function executarTurnoIA(fase) {
             break;
         case "principal":
             iajogarcarta();
+            iaUsarEfeitos(); // NOVO: depois de jogar cartas, decide quais efeitos ativar
             setTimeout(avancarFase, 1500);
             break;
         case "batalha":
@@ -334,6 +434,7 @@ function executarTurnoIA(fase) {
             setTimeout(avancarFase, 1500);
             break;
         case "final":
+            iaUsarEfeitos(); // NOVO: última chance de ativar algo (ex: Descanso) antes de passar o turno
             setTimeout(avancarFase, 500);
             break;
         default:
@@ -378,11 +479,35 @@ function iniciarPartida() {
 
 document.addEventListener("DOMContentLoaded", () => {
     iniciarPartida();
+
     document.querySelector("#next-phase-button").addEventListener("click", () => {
         if (jogoTerminado) return;
         if (turnState.jogadorDaVez.ehIA) return;
         avancarFase();
     });
+
+    // NOVO: registra o hover no próprio painel de preview. Isso é o que
+    // permite ao cursor "entrar" no preview (inclusive na área da barra de
+    // rolagem) sem que ele seja escondido — porque, enquanto o mouse está
+    // sobre #preview-carta, este listener cancela qualquer timeout de
+    // esconder que tenha sido agendado pelo mouseleave da carta original.
+    const preview = document.querySelector("#preview-carta");
+    if (preview) {
+        preview.addEventListener("mouseenter", () => clearTimeout(timeoutEsconderPreview));
+        preview.addEventListener("mouseleave", () => agendarEsconderPreview());
+    }
+
+    // NOVO: liga os botões do popup de resultado (jogar novamente / sair).
+    const botaoJogarNovamente = document.querySelector("#popup-jogar-novamente");
+    if (botaoJogarNovamente) {
+        botaoJogarNovamente.addEventListener("click", () => location.reload());
+    }
+    const botaoSair = document.querySelector("#popup-sair");
+    if (botaoSair) {
+        botaoSair.addEventListener("click", () => {
+            window.location.href = "homepage.html";
+        });
+    }
 });
 
 function habilitarAtaqueJogador() {
@@ -431,29 +556,44 @@ function limparSelecaoAlvo() {
     });
 }
 
-// ===== CORRIGIDA: agora checa o escudo do efeito "Aceitação" antes de aplicar dano =====
+// CORRIGIDA: agora aplica de fato "metade do dano" (em vez de anular o
+// ataque inteiro) e usa o parâmetro certo (jogadorAlvo, não uma variável
+// inexistente). Ver explicação detalhada na resposta sobre por que essa
+// checagem saiu de resolverBatalha() e ficou só aqui.
 function resolverAtaqueDireto(cartaAtacante, jogadorAlvo) {
     if (jogadorAlvo.escudoAtivo) {
         jogadorAlvo.escudoAtivo = false;
         logMensagem(`${jogadorAlvo.nome} usou seu escudo e anulou o ataque de ${cartaAtacante.nome}!`);
         return;
     }
-    jogadorAlvo.vidaPontos = Math.max(0, jogadorAlvo.vidaPontos - cartaAtacante.atk);
+
+    let danoFinal = cartaAtacante.atk;
+    if (jogadorAlvo.reducaoDano) {
+        jogadorAlvo.reducaoDano = false;
+        danoFinal = Math.floor(danoFinal / 2);
+        logMensagem(`${jogadorAlvo.nome} usou o efeito de Ouvinte: o dano deste ataque foi reduzido pela metade!`);
+    }
+
+    jogadorAlvo.vidaPontos = Math.max(0, jogadorAlvo.vidaPontos - danoFinal);
     atualizarHUD();
-    logMensagem(`${cartaAtacante.nome} atacou diretamente! ${jogadorAlvo.nome} perdeu ${cartaAtacante.atk} pontos de vida.`);
+    logMensagem(`${cartaAtacante.nome} atacou diretamente! ${jogadorAlvo.nome} perdeu ${danoFinal} pontos de vida.`);
     verificarVitoria();
 }
 
+// CORRIGIDA: removido o bloco de reducaoDano que existia aqui — ele
+// tratava um efeito de "reduzir dano" como se fosse anular o combate
+// inteiro (comportamento errado) e ainda referenciava uma variável
+// `jogadorDono` que não existe nesta função (isso geraria um
+// ReferenceError e travaria o jogo assim que o efeito fosse usado antes
+// de uma batalha entre monstros). Batalhas entre monstros não causam
+// perda de LP neste jogo — só combate direto causa — então "reduzir o
+// dano pela metade" só faz sentido dentro de resolverAtaqueDireto(),
+// onde já está implementado corretamente acima.
 function resolverBatalha(atacante, defensor, jogadorDefensor) {
     if (jogadorDefensor.escudoAtivo) {
         jogadorDefensor.escudoAtivo = false;
         logMensagem(`${jogadorDefensor.nome} usou seu escudo e anulou o ataque de ${atacante.nome}!`);
         return;
-    }
-    if (jogadorDefensor.reducaoDano){
-        jogadorDefensor.reducaoDano = false;
-         logMensagem(`${jogadorDono.nome} escutou ${atacante.nome}. o próximo ataque recebido será reduzido.`);
-         return;
     }
     if (atacante.atk > defensor.def) {
         removerCartaDoCampo(jogadorDefensor, defensor.id);
@@ -478,23 +618,69 @@ function removerCartaDoCampo(jogadorDono, idCarta) {
     }
 }
 
-// ===== CORRIGIDA: agora trava o jogo de verdade =====
+// CORRIGIDA: agora recebe o tipo de resultado ("vitoria" | "derrota" |
+// "comboSagrado") e quem acionou (para o combo sagrado), e delega a
+// exibição da mensagem central para mostrarPopupResultado().
 function verificarVitoria() {
     if (jogador.vidaPontos <= 0) {
         logMensagem("Você perdeu! O oponente venceu a partida.");
-        encerrarPartida();
+        encerrarPartida("derrota");
     } else if (oponente.vidaPontos <= 0) {
         logMensagem("Você venceu a partida!");
-        encerrarPartida();
+        encerrarPartida("vitoria");
     }
 }
 
-function encerrarPartida() {
+// NOVO: checa se as 5 cartas do combo sagrado estão todas na mão do
+// jogador informado. Chamada automaticamente sempre que uma mão é
+// redesenhada (renderHand / renderhandOponent), então não é preciso
+// lembrar de chamá-la manualmente em cada lugar que muda a mão.
+function verificarComboSagrado(jogadorAlvo) {
+    if (jogoTerminado) return;
+
+    const idsNaMao = jogadorAlvo.mao.map((c) => c.id);
+    const temComboCompleto = COMBO_SAGRADO_IDS.every((id) => idsNaMao.includes(id));
+
+    if (temComboCompleto) {
+        logMensagem(`${jogadorAlvo.nome} reuniu Vida, Verdade, Caminho, Luz e Verbo — vitória instantânea!`);
+        encerrarPartida("comboSagrado", jogadorAlvo);
+    }
+}
+
+// ATUALIZADA: agora recebe o tipo de resultado e (opcionalmente) quem
+// acionou o combo sagrado, e chama mostrarPopupResultado() para exibir a
+// mensagem central com os botões de jogar novamente / sair.
+function encerrarPartida(tipo, jogadorQueAcionou = null) {
+    if (jogoTerminado) return; // evita chamar o popup duas vezes
     jogoTerminado = true;
     limparEventosAtaque();
     limparSelecao();
     const botaoFase = document.querySelector("#next-phase-button");
     if (botaoFase) botaoFase.disabled = true;
+    mostrarPopupResultado(tipo, jogadorQueAcionou);
+}
+
+// NOVO: monta a mensagem certa para cada tipo de fim de jogo e exibe o
+// popup central (#popup-vitoria), que já existe no HTML mas até agora não
+// tinha nenhuma lógica de JavaScript ligada a ele.
+function mostrarPopupResultado(tipo, jogadorQueAcionou) {
+    const popup = document.querySelector("#popup-vitoria");
+    const texto = document.querySelector("#popup-vitoria-texto");
+    if (!popup || !texto) return;
+
+    let mensagem = "";
+
+    if (tipo === "comboSagrado") {
+        const nomeVencedor = jogadorQueAcionou === jogador ? "Você" : jogadorQueAcionou.nome;
+        mensagem = `✨ COMBO SAGRADO! ✨\n${nomeVencedor} reuniu Vida, Verdade, Caminho, Luz e Verbo e venceu a partida instantaneamente!`;
+    } else if (tipo === "vitoria") {
+        mensagem = "Você venceu a partida!";
+    } else if (tipo === "derrota") {
+        mensagem = "Você perdeu! O oponente venceu a partida.";
+    }
+
+    texto.textContent = mensagem;
+    popup.classList.add("visivel");
 }
 
 function limparEventosAtaque() {
@@ -512,7 +698,6 @@ function atualizarHUD() {
     if (vidaOp) vidaOp.textContent = oponente.vidaPontos;
 }
 
-// ===== CORRIGIDA: mantém só as 5 mensagens mais recentes =====
 function logMensagem(texto) {
   console.log(texto);
   const lista = document.querySelector("#log-lista");
@@ -549,7 +734,7 @@ function atualizarBotoesDeEfeito() {
     });
 }
 
-// ===== NOVO: funções de efeito individuais + tabela EFEITOS =====
+// ===== Funções de efeito individuais + tabela EFEITOS =====
 // Ficam aqui (index.js), não em cards.js, porque cards.js carrega ANTES
 // deste arquivo — se a tabela EFEITOS estivesse lá, essas funções ainda
 // não existiriam no momento em que o objeto fosse montado.
@@ -578,9 +763,16 @@ function DescansoBao(jogadorDono, carta){
     return true;
 }
 
-function CalmaCaykeCalma(_JogadorDono, carta){
-    comprarCarta(jogador);
-    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: foi comprado uma carta`);
+// CORRIGIDA: o parâmetro agora se chama `jogadorDono` (antes era
+// `_JogadorDono`, com underscore, enquanto o corpo da função usava
+// `jogadorDono` sem underscore — duas variáveis diferentes! Isso gerava
+// um ReferenceError assim que essa função rodava, travando a ativação do
+// efeito). Também trocamos `comprarCarta(jogador)` fixo por
+// `comprarCarta(jogadorDono)`: antes, se a IA usasse essa carta, a compra
+// ia para a mão do jogador humano por engano, em vez da própria IA.
+function CalmaCaykeCalma(jogadorDono, carta){
+    comprarCarta(jogadorDono);
+    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: foi comprada uma carta`);
     return true;
 }
 
@@ -597,10 +789,34 @@ function yugixd(jogadorDono, carta) {
 
 function escute(jogadorDono, carta){
     jogadorDono.reducaoDano = true;
-    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: o próximo ataque recebido será anulado.`);
+    logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: o próximo ataque recebido terá o dano reduzido pela metade.`);
     return true;
 }
 
+// NOVO: efeito do Homem-Aranha ("Sentido Aranha"). Paga um custo de 500
+// ATK (retirado permanentemente da própria carta, nesta partida) para
+// armar um escudo que anula o próximo ataque recebido — reaproveitando o
+// mesmo `escudoAtivo` já usado por "Aceitação".
+function sentidoAranha(jogadorDono, carta) {
+    const CUSTO_ATK = 500;
+
+    if (carta.atk < CUSTO_ATK) {
+        logMensagem(`${carta.nome} não tem ATK suficiente para pagar o custo do Sentido Aranha (${CUSTO_ATK}).`);
+        return false;
+    }
+
+    carta.atk -= CUSTO_ATK;
+    jogadorDono.escudoAtivo = true;
+
+    // Redesenha o card no campo para refletir o novo ATK na tela.
+    const indiceNoCampo = jogadorDono.campo.actions.findIndex((c) => c && c.id === carta.id);
+    if (indiceNoCampo !== -1) {
+        atualizarVisualDoSlot(jogadorDono, "actions", indiceNoCampo, carta);
+    }
+
+    logMensagem(`${jogadorDono.nome} ativou o Sentido Aranha de ${carta.nome}! Pagou ${CUSTO_ATK} de ATK (agora: ${carta.atk}) para anular o próximo ataque recebido.`);
+    return true;
+}
 
 const EFEITOS = {
   "KD-001": efeitoDestruirCartaInimiga,
@@ -623,9 +839,16 @@ const EFEITOS = {
   "YG-001": yugixd,
   "YG-002": yugixd,
   "YG-003": yugixd,
+  // NOVO: mapeamentos que faltavam.
+  "LT-001": escute,
+  "LT-002": escute,
+  "LT-003": escute,
+  "LT-004": escute,
+  "LT-005": escute,
+  "LT-006": escute,
+  "SM-001": sentidoAranha,
 };
 
-// ===== CORRIGIDA: agora consulta a tabela EFEITOS em vez de um if fixo =====
 function ativarEfeito(jogadorDono, carta) {
     if (carta.efeitoUsado) {
         logMensagem(`${carta.nome} já usou seu efeito nesta partida.`);

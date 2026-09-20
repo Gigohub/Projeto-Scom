@@ -233,6 +233,22 @@ header{
     margin: 0;
 }
 
+.botaotroca button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.1rem;
+  border: 2px solid rgb(255, 94, 0);
+  font: inherit;
+  background: #fff306;
+  color: #0f1020;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  border-radius: 6px; /* Opcional: arredonda levemente os cantos do botão */
+}
+
 .controles-turno{
     display: flex;
     flex-direction: column;
@@ -260,6 +276,12 @@ header{
     width: 100%;
 }
 
+.jogador-hand .card,
+.oponente-hand .card {
+  width: 100px;   /* ajuste ao gosto */
+  height: 100px;
+}
+
 .botao-efeito {
   position: absolute;
   bottom: 2px;
@@ -269,7 +291,7 @@ header{
   padding: 2px 6px;
   border: none;
   border-radius: 4px;
-  background: #ffcc00;
+  background: #ea5e75;
   cursor: pointer;
   z-index: 5; /* garante que o botão fique por cima da carta, não escondido atrás dela */
 }
@@ -278,7 +300,7 @@ header{
 #turno-atual,
 #fase-atual,
 .vida-label {
-  color: #ffdd00;
+  color: #ea5e75;
 }
 
 .card-front, .card-front * {
@@ -454,3 +476,49 @@ header{
   cursor: pointer;
   font-weight: bold;
 }
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;       /* alvo de toque confortável */
+  padding: 0.5rem 1.1rem;
+  border: 2px solid transparent;
+  border-radius: 0.75rem;
+  font: inherit;
+   background: #ea5e75;
+  color: #0f1020;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  border-color: rgb(244, 245, 243);
+
+}
+
+.popup-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.popup-overlay.visivel { display: flex; }
+.popup-caixa {
+  background: #fff;
+  color: #111;
+  padding: 24px 32px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 420px;
+  white-space: pre-line; /* respeita as quebras de linha da mensagem do combo sagrado */
+}
+.popup-botoes {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
