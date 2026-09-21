@@ -522,3 +522,91 @@ header{
   margin-top: 16px;
 }
 
+/* Classe utilitária para esconder elementos */
+.oculto {
+  display: none !important;
+}
+
+/* Painel da Tela de Fim de Jogo */
+.tela-fim-jogo {
+  width: 100%;
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #1a1b26;
+  border: 3px solid #ea5e75;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.fim-jogo-conteudo h2 {
+  font-size: 2rem;
+  color: #ffd700;
+  margin-bottom: 10px;
+}
+
+.fim-jogo-conteudo p {
+  font-size: 1.2rem;
+  color: #ffffff;
+  margin-bottom: 25px;
+}
+
+.fim-jogo-botoes {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===========================================================
+   BOTÃO DE PRÓXIMA FASE
+   =========================================================== */
+#next-phase-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #0f1020;
+  background-color: #ffee00;
+  border: 2px solid #e4570c;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+#next-phase-button:hover:not(:disabled) {
+  background-color: #ffee00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 94, 117, 0.4);
+}
+
+#next-phase-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+#next-phase-button:disabled {
+  background-color: #3a3a42;
+  color: #777780;
+  border-color: #555560;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+

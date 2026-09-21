@@ -1,126 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Be Kind</title>
        
-       <script src="cards.js" defer></script>
-       <script src="deck.js" defer></script>
-       <script src="hand.js" defer></script>
-       <script src="field.js" defer></script>
-       <script src="index.js" defer></script>
+    <script src="cards.js" defer></script>
+    <script src="deck.js" defer></script>
+    <script src="hand.js" defer></script>
+    <script src="field.js" defer></script>
+    <script src="index.js" defer></script>
        
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-    <div class="header-title-container">
-        <h1>Kind Game</h1>
-    </div>
-    <div class="botaotroca">
-      <div>
-          <button id="next-phase-button" class="botaotroca">Próxima Fase</button>
+        <div class="header-title-container">
+            <h1>Kind Game</h1>
+        </div>
+        <div class="controles-topo">
+            <button id="next-phase-button" class="botaotroca">Próxima Fase</button>
+            
+        </div>
+        <div class="controles-turno">
+            <span id="turno-atual">Turno: 1</span>
+            <span id="fase-atual">Fase: COMPRA (Jogador)</span>
+        </div>
+        
+        <div class="hud-vida">
+            <span class="vida-label">Você: <span id="vida-jogador">4000</span> LP</span>
+            <span class="vida-label">Oponente: <span id="vida-oponente">4000</span> LP</span>
+        </div>
+        <div id="preview-carta"></div>
+        <div id="log-jogo">
+            <h3>Status da Partida</h3>
+            <ul id="log-lista"></ul>
+            <a class="botao botao--menu" href="homepage.html">Sair da partida</a>
+        </div>
+    </header>
+
+    <!-- Popup de Fim de Jogo -->
+    <div id="popup-vitoria" class="popup-overlay">
+      <div class="popup-caixa">
+        <p id="popup-vitoria-texto"></p>
+        <div class="popup-botoes">
+          <button id="popup-jogar-novamente">Jogar Novamente</button>
+          <button id="popup-sair">Voltar ao Menu</button>
+        </div>
       </div>
     </div>
-    <div class="controles-turno">
-        
-        <span id="turno-atual">Turno: 1</span>
-        <span id="fase-atual">Fase: COMPRA (Jogador)</span>
-    </div>
-    
-    <div class="hud-vida">
-    <span class="vida-label">Você: <span id="vida-jogador">4000</span> LP</span>
-    <span class="vida-label">Oponente: <span id="vida-oponente">4000</span> LP</span>
-    </div>
-      <div id="preview-carta"></div>  <!-- ADICIONE ESTA LINHA -->
-    </div>
-    <div id="log-jogo">
-        <h3>Status da Partida</h3>
-        <ul id="log-lista"></ul>
-    </div>
-     <li><a class="botao botao--menu" href="homepage.html">sair da partida</a></li>
-</header>
-
-    <div id="popup-vitoria" class="popup-overlay">
-  <div class="popup-caixa">
-    <p id="popup-vitoria-texto"></p>
-    <button id="popup-vitoria-fechar">Fechar</button>
-  </div>
-</div>
 
     <div class="tabuleiro">
-    <div class="area-oponente">
-  <div class="hand-container oponente-hand"></div>
+        <div class="area-oponente">
+            <div class="hand-container oponente-hand"></div>
 
-  <div class="field-container">
-    <div class="deck-slot" id="oponente-deck">
-  <div class="card card-oculta">
-    <div class="card-inner">
-      <div class="card-back"><img src="images/coffe.jpg" class="card-img" alt="Baralho"></div>
-    </div>
-  </div>
-  <span class="deck-contador" id="oponente-deck-contador">0</span>
-</div>
-    <div class="field-row" id="oponente-magias-armadilhas">
-      <div class="field-slot" data-slot="0"></div>
-      <div class="field-slot" data-slot="1"></div>
-      <div class="field-slot" data-slot="2"></div>
-      <div class="field-slot" data-slot="3"></div>
-      <div class="field-slot" data-slot="4"></div>
-    </div>
-    <div class="field-row" id="oponente-monstros">
-      <div class="field-slot" data-slot="0"></div>
-      <div class="field-slot" data-slot="1"></div>
-      <div class="field-slot" data-slot="2"></div>
-      <div class="field-slot" data-slot="3"></div>
-      <div class="field-slot" data-slot="4"></div>
-    </div>
-  </div>
-</div>
+            <div class="field-container">
+                <div class="deck-slot" id="oponente-deck">
+                    <div class="card card-oculta">
+                        <div class="card-inner">
+                            <div class="card-back"><img src="images/coffe.jpg" class="card-img" alt="Baralho"></div>
+                        </div>
+                    </div>
+                    <span class="deck-contador" id="oponente-deck-contador">0</span>
+                </div>
+                <div class="field-row" id="oponente-magias-armadilhas">
+                    <div class="field-slot" data-slot="0"></div>
+                    <div class="field-slot" data-slot="1"></div>
+                    <div class="field-slot" data-slot="2"></div>
+                    <div class="field-slot" data-slot="3"></div>
+                    <div class="field-slot" data-slot="4"></div>
+                </div>
+                <div class="field-row" id="oponente-monstros">
+                    <div class="field-slot" data-slot="0"></div>
+                    <div class="field-slot" data-slot="1"></div>
+                    <div class="field-slot" data-slot="2"></div>
+                    <div class="field-slot" data-slot="3"></div>
+                    <div class="field-slot" data-slot="4"></div>
+                </div>
+            </div>
+        </div>
 
-<div class="area-jogador">
-  <div class="field-container">
- <div class="deck-slot" id="jogador-deck">
-      <div class="card card-oculta">
-      <div class="card-inner">
-      <div class="card-back"><img src="images/coffe.jpg" class="card-img" alt="Baralho"></div>
-      </div>
-      </div>
-      <span class="deck-contador" id="jogador-deck-contador">0</span>
-</div>
-    <div class="field-row" id="jogador-monstros">
-      <div class="field-slot" data-slot="0"></div>
-      <div class="field-slot" data-slot="1"></div>
-      <div class="field-slot" data-slot="2"></div>
-      <div class="field-slot" data-slot="3"></div>
-      <div class="field-slot" data-slot="4"></div>
-    </div>
-    <div class="field-row" id="jogador-magias-armadilhas">
-      <div class="field-slot" data-slot="0"></div>
-      <div class="field-slot" data-slot="1"></div>
-      <div class="field-slot" data-slot="2"></div>
-      <div class="field-slot" data-slot="3"></div>
-      <div class="field-slot" data-slot="4"></div>
-    </div>
-  </div>
+        <div class="area-jogador">
+            <div class="field-container">
+                <div class="deck-slot" id="jogador-deck">
+                    <div class="card card-oculta">
+                        <div class="card-inner">
+                            <div class="card-back"><img src="images/coffe.jpg" class="card-img" alt="Baralho"></div>
+                        </div>
+                    </div>
+                    <span class="deck-contador" id="jogador-deck-contador">0</span>
+                </div>
+                <div class="field-row" id="jogador-monstros">
+                    <div class="field-slot" data-slot="0"></div>
+                    <div class="field-slot" data-slot="1"></div>
+                    <div class="field-slot" data-slot="2"></div>
+                    <div class="field-slot" data-slot="3"></div>
+                    <div class="field-slot" data-slot="4"></div>
+                </div>
+                <div class="field-row" id="jogador-magias-armadilhas">
+                    <div class="field-slot" data-slot="0"></div>
+                    <div class="field-slot" data-slot="1"></div>
+                    <div class="field-slot" data-slot="2"></div>
+                    <div class="field-slot" data-slot="3"></div>
+                    <div class="field-slot" data-slot="4"></div>
+                </div>
+            </div>
 
-  <div class="hand-container jogador-hand"></div>
-</div>
-</div>
+            <div class="hand-container jogador-hand"></div>
+        </div>
+    </div>
 </body>
-
-<div id="popup-vitoria" class="popup-overlay">
-  <div class="popup-caixa">
-    <p id="popup-vitoria-texto"></p>
-    <div class="popup-botoes">
-      <button id="popup-jogar-novamente">Jogar Novamente</button>
-      <button id="popup-sair">Sair</button>
-    </div>
-  </div>
-</div>
- 
-
-
 </html>
