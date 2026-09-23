@@ -10,7 +10,7 @@
     <script src="hand.js" defer></script>
     <script src="field.js" defer></script>
     <script src="index.js" defer></script>
-       
+       <link rel="icon" href="images/coffe.webp" type="image/jpg">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,25 +19,23 @@
         <div class="header-title-container">
             <h1>Kind Game</h1>
         </div>
-        <div class="controles-topo">
-            <button id="next-phase-button" class="botaotroca">Próxima Fase</button>
-            
-        </div>
-        <div class="controles-turno">
-            <span id="turno-atual">Turno: 1</span>
-            <span id="fase-atual">Fase: COMPRA (Jogador)</span>
-        </div>
+       
+        
         
         <div class="hud-vida">
-            <span class="vida-label">Você: <span id="vida-jogador">4000</span> LP</span>
-            <span class="vida-label">Oponente: <span id="vida-oponente">4000</span> LP</span>
+            <span class="vida-label">Você: <span id="vida-jogador">8000</span> LP</span>
+            <span class="vida-label">Oponente: <span id="vida-oponente">8000</span> LP</span>
         </div>
-        <div id="preview-carta"></div>
+        <div id="preview-carta">
+            <button id="preview-fechar" type="button" aria-label="Fechar preview">✕</button>
+            <div id="preview-conteudo"></div>
+        </div>
         <div id="log-jogo">
             <h3>Status da Partida</h3>
             <ul id="log-lista"></ul>
-            <a class="botao botao--menu" href="homepage.html">Sair da partida</a>
         </div>
+        
+        <a class="botao botao--menu" href="homepage.html">Sair da partida</a>
     </header>
 
     <!-- Popup de Fim de Jogo -->
@@ -59,26 +57,35 @@
                 <div class="deck-slot" id="oponente-deck">
                     <div class="card card-oculta">
                         <div class="card-inner">
-                            <div class="card-back"><img src="images/coffe.jpg" class="card-img" alt="Baralho"></div>
+                            <div class="card-back"><img src="images/coffe.webp" class="card-img" alt="Baralho"></div>
                         </div>
                     </div>
                     <span class="deck-contador" id="oponente-deck-contador">0</span>
                 </div>
                 <div class="field-row" id="oponente-magias-armadilhas">
-                    <div class="field-slot" data-slot="0"></div>
-                    <div class="field-slot" data-slot="1"></div>
-                    <div class="field-slot" data-slot="2"></div>
-                    <div class="field-slot" data-slot="3"></div>
-                    <div class="field-slot" data-slot="4"></div>
+                    <div class="field-slot" data-slot="0" tabindex="0"></div>
+                    <div class="field-slot" data-slot="1" tabindex="0"></div>
+                    <div class="field-slot" data-slot="2" tabindex="0"></div>
+                    <div class="field-slot" data-slot="3" tabindex="0"></div>
+                    <div class="field-slot" data-slot="4" tabindex="0"></div>
                 </div>
                 <div class="field-row" id="oponente-monstros">
-                    <div class="field-slot" data-slot="0"></div>
-                    <div class="field-slot" data-slot="1"></div>
-                    <div class="field-slot" data-slot="2"></div>
-                    <div class="field-slot" data-slot="3"></div>
-                    <div class="field-slot" data-slot="4"></div>
+                    <div class="field-slot" data-slot="0" tabindex="0"></div>
+                    <div class="field-slot" data-slot="1" tabindex="0"></div>
+                    <div class="field-slot" data-slot="2" tabindex="0"></div>
+                    <div class="field-slot" data-slot="3" tabindex="0"></div>
+                    <div class="field-slot" data-slot="4" tabindex="0"></div>
                 </div>
             </div>
+        </div>
+        
+        <div class="controles-turno">
+            <span id="turno-atual">Turno: 1</span>
+            <span id="fase-atual">Fase: COMPRA (Jogador)</span>
+        </div>
+
+         <div class="controles-topo">
+            <button id="next-phase-button" class="botaotroca">Próxima Fase</button>
         </div>
 
         <div class="area-jogador">
@@ -86,24 +93,24 @@
                 <div class="deck-slot" id="jogador-deck">
                     <div class="card card-oculta">
                         <div class="card-inner">
-                            <div class="card-back"><img src="images/coffe.jpg" class="card-img" alt="Baralho"></div>
+                            <div class="card-back"><img src="images/coffe.webp" class="card-img" alt="Baralho"></div>
                         </div>
                     </div>
                     <span class="deck-contador" id="jogador-deck-contador">0</span>
                 </div>
                 <div class="field-row" id="jogador-monstros">
-                    <div class="field-slot" data-slot="0"></div>
-                    <div class="field-slot" data-slot="1"></div>
-                    <div class="field-slot" data-slot="2"></div>
-                    <div class="field-slot" data-slot="3"></div>
-                    <div class="field-slot" data-slot="4"></div>
+                    <div class="field-slot" data-slot="0" tabindex="0"></div>
+                    <div class="field-slot" data-slot="1" tabindex="0"></div>
+                    <div class="field-slot" data-slot="2" tabindex="0"></div>
+                    <div class="field-slot" data-slot="3" tabindex="0"></div>
+                    <div class="field-slot" data-slot="4" tabindex="0"></div>
                 </div>
                 <div class="field-row" id="jogador-magias-armadilhas">
-                    <div class="field-slot" data-slot="0"></div>
-                    <div class="field-slot" data-slot="1"></div>
-                    <div class="field-slot" data-slot="2"></div>
-                    <div class="field-slot" data-slot="3"></div>
-                    <div class="field-slot" data-slot="4"></div>
+                    <div class="field-slot" data-slot="0" tabindex="0"></div>
+                    <div class="field-slot" data-slot="1" tabindex="0"></div>
+                    <div class="field-slot" data-slot="2" tabindex="0"></div>
+                    <div class="field-slot" data-slot="3" tabindex="0"></div>
+                    <div class="field-slot" data-slot="4" tabindex="0"></div>
                 </div>
             </div>
 

@@ -1,6 +1,14 @@
 let selectedCard = null;
 let jogoTerminado = false; // trava o jogo assim que alguém perde
 let timeoutEsconderPreview = null; // controla o pequeno atraso antes de esconder o preview
+let cartaEmPreviewId = null; // NOVO: qual carta está com o preview aberto (usado no toque do celular)
+
+// Detecta um dispositivo sem mouse de verdade (celular/tablet), em vez de
+// adivinhar pela largura da tela — funciona melhor porque não depende de
+// nenhum número de pixels "mágico".
+function ehDispositivoTouch() {
+    return window.matchMedia && window.matchMedia("(hover: none)").matches;
+}
 
 
 function construirMarkupCarta(carta){
@@ -38,10 +46,34 @@ function gerarCarta(carta){
     const cardDiv = document.createElement("div");
     cardDiv.classList.add("card");
     cardDiv.dataset.id = carta.id;
+    cardDiv.tabIndex = 0; // torna a carta alcançável pelo teclado (Tab)
     cardDiv.innerHTML = construirMarkupCarta(carta);
 
+    // Desktop: passar o mouse por cima já mostra o preview.
     cardDiv.addEventListener("mouseenter", () => mostrarPreview(carta));
-    cardDiv.addEventListener("mouseleave", () => agendarEsconderPreview());
+
+    // Celular: TOQUE SIMPLES alterna o preview, em vez de precisar segurar.
+    // Esse listener é adicionado ANTES de qualquer outro listener de clique
+    // (como o que coloca a carta em campo, em renderHand) — como os
+    // listeners de um mesmo elemento disparam na ordem em que foram
+    // adicionados, este roda primeiro e decide se "consome" o toque.
+    cardDiv.addEventListener("click", (evento) => {
+        if (!ehDispositivoTouch()) return; // no desktop, isso não faz nada — o hover já resolve
+
+        if (cartaEmPreviewId !== carta.id) {
+            // Primeiro toque nesta carta: só mostra o preview.
+            mostrarPreview(carta);
+            cartaEmPreviewId = carta.id;
+            // Impede que o PRÓXIMO listener de clique (o que colocaria a
+            // carta em campo) rode neste mesmo toque.
+            evento.stopImmediatePropagation();
+            return;
+        }
+
+        // Segundo toque na MESMA carta: esconde o preview e deixa o
+        // próximo listener seguir (é aí que a carta é de fato colocada).
+        esconderPreview();
+    });
 
     return cardDiv;
 }
@@ -50,8 +82,9 @@ function mostrarPreview(carta) {
     clearTimeout(timeoutEsconderPreview);
 
     const preview = document.querySelector("#preview-carta");
-    if (!preview) return;
-    preview.innerHTML = construirMarkupCarta(carta);
+    const conteudo = document.querySelector("#preview-conteudo");
+    if (!preview || !conteudo) return;
+    conteudo.innerHTML = construirMarkupCarta(carta);
     preview.classList.add("visivel");
 }
 
@@ -62,9 +95,11 @@ function agendarEsconderPreview() {
 
 function esconderPreview() {
     const preview = document.querySelector("#preview-carta");
+    const conteudo = document.querySelector("#preview-conteudo");
     if (!preview) return;
     preview.classList.remove("visivel");
-    preview.innerHTML = "";
+    if (conteudo) conteudo.innerHTML = "";
+    cartaEmPreviewId = null; // libera pra mostrar essa MESMA carta de novo da próxima vez
 }
 
 function renderHand(jogadorAlvo){
@@ -73,6 +108,10 @@ function renderHand(jogadorAlvo){
     jogadorAlvo.mao.forEach((carta) => {
         const cardElement = gerarCarta(carta);
         cardElement.addEventListener("click", () => {
+            if (cardElement.dataset.previewAtivo === "true") {
+                cardElement.dataset.previewAtivo = "false";
+                return;
+            }
             putInCamp(carta.id);
         });
         container.appendChild(cardElement);
@@ -141,6 +180,24 @@ function onSlotClicado(event){
     const slot = event.currentTarget;
     const linha = slot.closest(".field-row");
     const tipoLinha = linha.id === "jogador-monstros" ? "actions" : "pensamentos";
+
+    // NOVO: valida que o TIPO da carta selecionada realmente bate com a
+    // fileira clicada, antes de colocar. Isso é uma segunda trava de
+    // segurança, além do conserto em limparSelecao() acima — mesmo que
+    // algum listener "fantasma" escape no futuro, essa checagem impede
+    // a jogada errada de acontecer de qualquer forma.
+    const carta = jogador.mao.find((c) => c.id === selectedCard);
+    if (!carta) {
+        limparSelecao();
+        return;
+    }
+    const tipoEsperado = carta.tipo === "action" ? "actions" : "pensamentos";
+    if (tipoLinha !== tipoEsperado) {
+        logMensagem(`${carta.nome} é uma carta de ${carta.tipo === "action" ? "Ação" : "Pensamentos"} e não pode ser colocada nessa fileira.`);
+        limparSelecao();
+        return;
+    }
+
     const numeroSlot = Number(slot.dataset.slot);
 
     colocarCartaNoCampo(jogador, selectedCard, tipoLinha, numeroSlot);
@@ -193,6 +250,12 @@ function limparSelecao(){
     selectedCard = null;
     document.querySelectorAll(".field-slot").forEach((slot) => {
         slot.classList.remove("selecionavel");
+        // ESSENCIAL: sem isso, o listener adicionado por freeSlots() continua
+        // vivo mesmo depois de trocar de carta selecionada sem completar a
+        // jogada — é isso que permitia colocar uma carta de Ação num slot
+        // de Pensamentos (ou vice-versa), usando um listener "fantasma"
+        // de uma seleção anterior que nunca chegou a ser usada.
+        slot.removeEventListener("click", onSlotClicado);
     });
 }
 
@@ -201,7 +264,7 @@ function criarJogador(nome, ehIA = false, catalogo = cards_catalog) {
   return {
     nome: nome,
     ehIA: ehIA,
-    vidaPontos: 4000,
+    vidaPontos: 8000,
     escudoAtivo: false,
     reducaoDano: false,
     deck: catalogo.map((carta) => ({ ...carta })),
@@ -256,6 +319,8 @@ function onNextPhase() {
   } else {
     if (turnState.fase === "compra") {
       comprarCarta(jogador);
+      // Compra a carta e avança automaticamente para a Fase Principal após 1 segundo (1000ms)
+      setTimeout(avancarFase, 1000); 
     } else if (turnState.fase === "batalha") {
       if (turnState.numeroDoTurno === 1) {
         logMensagem("Não é permitido atacar no primeiro turno da partida.");
@@ -297,31 +362,31 @@ function iajogarcarta() {
     }
 }
 
-
 function deveAtivarEfeito(carta) {
     const jogadorTemMonstros = jogador.campo.actions.some((c) => c !== null);
+    const funcaoDoEfeito = EFEITOS[carta.id];
 
-    if (carta.id.startsWith("DS-")) {
+    if (funcaoDoEfeito === DescansoBao) {
         return oponente.vidaPontos <= 2000;
     }
 
-    if (carta.id.startsWith("AC-") || carta.id.startsWith("LT-")) {
+    if (funcaoDoEfeito === efeitoNegarAtaqueInimigo || funcaoDoEfeito === escute) {
         return jogadorTemMonstros && oponente.vidaPontos <= 2500;
     }
 
-    if (carta.id.startsWith("SP-")) {
+    if (funcaoDoEfeito === sentidoAranha) {
         return jogadorTemMonstros && oponente.vidaPontos <= 2500 && carta.atk >= 500;
     }
 
-    if (carta.id.startsWith("KD-")) {
+    if (funcaoDoEfeito === efeitoDestruirCartaInimiga) {
         return jogadorTemMonstros;
     }
 
-    if (carta.id.startsWith("CM-")) {
+    if (funcaoDoEfeito === CalmaCaykeCalma) {
         return oponente.mao.length <= 2;
     }
 
-    if (carta.id.startsWith("YG-")) {
+    if (funcaoDoEfeito === yugixd) {
         return oponente.vidaPontos < jogador.vidaPontos || jogador.vidaPontos <= 500;
     }
 
@@ -441,6 +506,16 @@ document.addEventListener("DOMContentLoaded", () => {
         preview.addEventListener("mouseleave", () => agendarEsconderPreview());
     }
 
+    // NOVO: botão "✕" dentro do preview, para fechar explicitamente
+    // (principal uso: celular, onde o preview fica no meio da tela).
+    const botaoFecharPreview = document.querySelector("#preview-fechar");
+    if (botaoFecharPreview) {
+        botaoFecharPreview.addEventListener("click", (evento) => {
+            evento.stopPropagation();
+            esconderPreview();
+        });
+    }
+
     const botaoJogarNovamente = document.querySelector("#popup-jogar-novamente");
     if (botaoJogarNovamente) {
         botaoJogarNovamente.addEventListener("click", () => location.reload());
@@ -451,6 +526,26 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "homepage.html";
         });
     }
+
+    // ===== NOVO: navegação por teclado (Tab + Enter/Espaço) =====
+    // Em vez de duplicar toda a lógica de clique para o teclado, a gente
+    // aproveita que ".click()" chamado via JavaScript dispara os MESMOS
+    // listeners de clique já cadastrados (não importa se foram
+    // adicionados com addEventListener ou com a propriedade onclick).
+    // Então: Tab para focar um elemento (carta ou slot), Enter/Espaço
+    // simula um clique nele, e tudo o que já existe continua funcionando.
+    document.addEventListener("keydown", (evento) => {
+        if (evento.key !== "Enter" && evento.key !== " ") return;
+
+        const alvo = evento.target;
+        const ehCarta = alvo.classList && alvo.classList.contains("card");
+        const ehSlot = alvo.classList && alvo.classList.contains("field-slot");
+
+        if (ehCarta || ehSlot) {
+            evento.preventDefault(); // a barra de espaço não deve rolar a página aqui
+            alvo.click();
+        }
+    });
 });
 
 function habilitarAtaqueJogador() {
@@ -515,7 +610,7 @@ function resolverAtaqueDireto(cartaAtacante, jogadorAlvo) {
 
     jogadorAlvo.vidaPontos = Math.max(0, jogadorAlvo.vidaPontos - danoFinal);
     atualizarHUD();
-    logMensagem(`${cartaAtacante.nome} atacou diretamente! ${jogadorAlvo.nome} perdeu ${danoFinal} pontos de vida.`);
+    logMensagem(`${cartaAtacante.nome} Agiu diretamente! ${jogadorAlvo.nome} perdeu ${danoFinal} pontos de vida.`);
     verificarVitoria();
 }
 
@@ -651,7 +746,6 @@ function atualizarBotoesDeEfeito() {
     });
 }
 
-
 function efeitoDestruirCartaInimiga(jogadorDono, carta) {
     const rival = obterRival(jogadorDono);
     const alvo = rival.campo.actions.find((c) => c !== null);
@@ -682,7 +776,6 @@ function CalmaCaykeCalma(jogadorDono, carta){
     logMensagem(`${jogadorDono.nome} ativou ${carta.nome}: foi comprada uma carta`);
     return true;
 }
-
 
 function yugixd(jogadorDono, carta) {
     const rival = obterRival(jogadorDono);
@@ -722,8 +815,8 @@ function sentidoAranha(jogadorDono, carta) {
     return true;
 }
 
-
 const EFEITOS = {
+  //DECK PRINCIPAL
   "KD-001": efeitoDestruirCartaInimiga,
   "KD-002": efeitoDestruirCartaInimiga,
   "KD-003": efeitoDestruirCartaInimiga,
@@ -753,6 +846,36 @@ const EFEITOS = {
   "SP-001": sentidoAranha,
   "SP-002": sentidoAranha,
   "SP-003": sentidoAranha,
+
+  //INIMIGO
+  "RG-001": efeitoDestruirCartaInimiga,
+  "RG-002": efeitoDestruirCartaInimiga,
+  "RG-003": efeitoDestruirCartaInimiga,
+  "RC-001": efeitoNegarAtaqueInimigo,
+  "RC-002": efeitoNegarAtaqueInimigo,
+  "RC-003": efeitoNegarAtaqueInimigo,
+  "IG-004": escute,
+  "IG-005": escute,
+  "IG-006": escute,
+  "IG-007": escute,
+  "IG-008": escute,
+  "IG-009": escute,
+  "IG-010": escute,
+  "IG-011": escute,
+  "IG-001": escute,
+  "IG-002": escute,
+  "IG-003": escute,
+  "KB-001": yugixd,
+  "KB-002": yugixd,
+  "KB-003": yugixd,
+  "SC-001": CalmaCaykeCalma,
+  "SC-002": CalmaCaykeCalma,
+  "SC-003": CalmaCaykeCalma,
+  "WR-001": DescansoBao,
+  "WR-002": DescansoBao,
+  "WR-003": DescansoBao,
+  "WR-004": DescansoBao,
+  "WR-005": DescansoBao,
 };
 
 function ativarEfeito(jogadorDono, carta) {
@@ -789,7 +912,6 @@ function ativarEfeito(jogadorDono, carta) {
     atualizarBotoesDeEfeito();
 }
 
-// Exibe a tela de resultado e esconde o tabuleiro
 function finalizarPartida(mensagem) {
   const tabuleiro = document.querySelector(".tabuleiro");
   const telaFim = document.querySelector("#tela-fim-jogo");
@@ -800,13 +922,12 @@ function finalizarPartida(mensagem) {
   if (telaFim) telaFim.classList.remove("oculto");
 }
 
-// Configuração dos botões no evento de carregamento da página
 document.addEventListener("DOMContentLoaded", () => {
   const btnTentarNovamente = document.querySelector("#btn-tentar-novamente");
 
   if (btnTentarNovamente) {
     btnTentarNovamente.addEventListener("click", () => {
-      window.location.reload(); // Recarrega a partida
+      window.location.reload();
     });
   }
 });

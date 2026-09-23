@@ -158,6 +158,8 @@ c--card-width: 157px;
     overflow-x: auto; /* se a mão tiver muitas cartas, ela rola só na horizontal, sem afetar a página */
     max-width: 100vw;
     padding: 6px;
+    -webkit-overflow-scrolling: touch; /* rolagem "inercial" suave no Safari/iOS — sem isso, o dedo às vezes parece "travar" no meio do arraste */
+    touch-action: pan-x; /* diz ao navegador que o gesto esperado aqui é arrastar na horizontal, evitando conflito com o "puxar pra atualizar" da página */
 }
 
 #log-jogo {
@@ -233,22 +235,6 @@ header{
     margin: 0;
 }
 
-.botaotroca button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1.1rem;
-  border: 2px solid rgb(255, 94, 0);
-  font: inherit;
-  background: #fff306;
-  color: #0f1020;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  border-radius: 6px; /* Opcional: arredonda levemente os cantos do botão */
-}
-
 .controles-turno{
     display: flex;
     flex-direction: column;
@@ -276,12 +262,6 @@ header{
     width: 100%;
 }
 
-.jogador-hand .card,
-.oponente-hand .card {
-  width: 100px;   /* ajuste ao gosto */
-  height: 100px;
-}
-
 .botao-efeito {
   position: absolute;
   bottom: 2px;
@@ -291,7 +271,7 @@ header{
   padding: 2px 6px;
   border: none;
   border-radius: 4px;
-  background: #ea5e75;
+  background: #ffcc00;
   cursor: pointer;
   z-index: 5; /* garante que o botão fique por cima da carta, não escondido atrás dela */
 }
@@ -300,19 +280,14 @@ header{
 #turno-atual,
 #fase-atual,
 .vida-label {
-  color: #ea5e75;
+  color: #ffdd00;
 }
 
 .card-front, .card-front * {
   color: #1a1a1a;
 }
 
-/* ===========================================================
-   RESPONSIVO — só se aplica quando a tela é estreita (celular).
-   Tudo acima desta linha continua valendo normalmente em telas
-   largas; as regras abaixo SOBRESCREVEM só o necessário quando
-   a largura da tela é 700px ou menos.
-   =========================================================== */
+
 @media (max-width: 700px) {
 
   /* No desktop, body é "row" (barra lateral ao lado do tabuleiro).
@@ -399,12 +374,7 @@ header{
 }
 
 
-/* ===========================================================
-   PREVIEW AMPLIADO — caixa fixa na barra lateral, acima do log
-   de mensagens. Fica vazia e "invisível" (opacity: 0) até que
-   mostrarPreview() (index.js) preencha ela com o HTML de uma
-   carta e adicione a classe "visivel".
-   =========================================================== */
+
 #preview-carta {
   position: relative;
   width: 100%;
@@ -416,7 +386,36 @@ header{
   overflow: hidden;
   opacity: 0;
   transition: opacity 0.15s ease;
-  pointer-events: none; /* garante que o preview nunca "rouba" o clique do mouse */
+}
+
+
+#preview-conteudo {
+  width: 100%;
+  height: 100%;
+}
+
+#preview-fechar {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10; /* acima da carta desenhada dentro de #preview-conteudo */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+#preview-carta.visivel #preview-fechar {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 #preview-carta.visivel {
@@ -425,23 +424,39 @@ header{
   border-color: #ffd700;
 }
 
-/* No celular não existe "passar o mouse" (hover) de verdade, então o
-   preview nunca seria acionado — melhor liberar esse espaço pro log */
+
 @media (max-width: 700px) {
   #preview-carta {
-    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 65vw;
+    max-width: 260px;
+    aspect-ratio: 157 / 220;
+    max-height: 75vh;
+    z-index: 90; /* fica por cima do tabuleiro, abaixo só do popup de vitória (z-index:100) */
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  #preview-carta.visivel {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  #preview-fechar {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    top: 6px;
+    right: 6px;
   }
 }
 
-/* ===========================================================
-   POP-UP DE VITÓRIA — janela central que aparece sobre tudo o
-   resto (z-index alto) quando alguém vence, seja pelo combo das
-   5 cartas sagradas ou pela vida chegando a 0.
-   =========================================================== */
+
 .popup-overlay {
-  display: none; /* escondido por padrão */
+  display: none; 
   position: fixed;
-  inset: 0; /* atalho para top:0; right:0; bottom:0; left:0 */
+  inset: 0; 
   background: rgba(0, 0, 0, 0.75);
   z-index: 100;
   align-items: center;
@@ -449,7 +464,7 @@ header{
 }
 
 .popup-overlay.visivel {
-  display: flex; /* mostrarPopupVitoria() adiciona essa classe para revelar o popup */
+  display: flex; 
 }
 
 .popup-caixa {
@@ -477,136 +492,78 @@ header{
   font-weight: bold;
 }
 
-.botao {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.75rem;       /* alvo de toque confortável */
-  padding: 0.5rem 1.1rem;
-  border: 2px solid transparent;
-  border-radius: 0.75rem;
-  font: inherit;
-   background: #ea5e75;
-  color: #0f1020;
-  font-weight: 700;
+
+
+.botao--menu {
+  flex-shrink: 0; 
+  display: block;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #3a1414;
+  color: #ff8888;
   text-decoration: none;
-  cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  border-color: rgb(244, 245, 243);
-
-}
-
-.popup-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-}
-.popup-overlay.visivel { display: flex; }
-.popup-caixa {
-  background: #fff;
-  color: #111;
-  padding: 24px 32px;
-  border-radius: 12px;
-  text-align: center;
-  max-width: 420px;
-  white-space: pre-line; /* respeita as quebras de linha da mensagem do combo sagrado */
-}
-.popup-botoes {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 16px;
-}
-
-/* Classe utilitária para esconder elementos */
-.oculto {
-  display: none !important;
-}
-
-/* Painel da Tela de Fim de Jogo */
-.tela-fim-jogo {
-  width: 100%;
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 30px;
-  background: #1a1b26;
-  border: 3px solid #ea5e75;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-  animation: fadeIn 0.4s ease-in-out;
-}
-
-.fim-jogo-conteudo h2 {
-  font-size: 2rem;
-  color: #ffd700;
-  margin-bottom: 10px;
-}
-
-.fim-jogo-conteudo p {
-  font-size: 1.2rem;
-  color: #ffffff;
-  margin-bottom: 25px;
-}
-
-.fim-jogo-botoes {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ===========================================================
-   BOTÃO DE PRÓXIMA FASE
-   =========================================================== */
-#next-phase-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 10px 14px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
-  color: #0f1020;
-  background-color: #ffee00;
-  border: 2px solid #e4570c;
-  border-radius: 8px;
+  border: 1px solid #6b2626;
+}
+
+/* Container apenas para posicionamento */
+.controles-topo {
+  flex-shrink: 0; 
+  display: block;
+  text-align: center;
+}
+
+/* Estilização aplicada diretamente ao botão */
+.botaotroca {
+  display: inline-block;
+  width: 100%; /* Ocupa toda a largura do container (opcional) */
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #ffd700;
+  color: #000000;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #c25f0e;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-#next-phase-button:hover:not(:disabled) {
-  background-color: #ffee00;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(234, 94, 117, 0.4);
+/* Efeito ao passar o mouse */
+.botaotroca:hover {
+  background-color: #e6c200;
+  border-color: #722f08
 }
 
-#next-phase-button:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: none;
+/* Efeito ao clicar */
+.botaotroca:active {
+  transform: scale(0.98);
 }
 
-#next-phase-button:disabled {
-  background-color: #3a3a42;
-  color: #777780;
-  border-color: #555560;
+/* Estado desativado (se usado durante o turno do oponente) */
+.botaotroca:disabled {
+  background-color: #cccccc;
+  border-color: #cccccc;
+  color: #666666;
   cursor: not-allowed;
-  opacity: 0.6;
+}
+.botao--menu:hover {
+  background: #55201f;
 }
 
+
+@media (max-width: 700px) {
+  .botao--menu {
+    flex: 0 0 auto;
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+
+.card:focus-visible,
+.field-slot:focus-visible {
+  outline: 3px solid #4da6ff;
+  outline-offset: 2px;
+}
