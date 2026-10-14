@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · Kind Game</title>
+  <link rel="stylesheet" href="css/auth.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+</head>
+<body>
+  <main class="pagina">
+    <header class="topo">
+      <h1 id="saudacao">Dashboard</h1>
+      <nav aria-label="Principal">
+        <a class="botao" href="index.html">Jogar agora</a>
+        <a class="botao botao--secundario" href="homepage.html">Início</a>
+        <button type="button" id="botao-sair" class="botao botao--secundario">Sair</button>
+      </nav>
+    </header>
+
+    <section class="cartao" aria-labelledby="titulo-perfil">
+      <h2 id="titulo-perfil">Seu perfil</h2>
+      <p><strong>Nome:</strong> <span id="perfil-nome"></span></p>
+      <p><strong>E-mail:</strong> <span id="perfil-email"></span></p>
+      <p><strong>Tipo de conta:</strong> <span id="perfil-papel"></span></p>
+
+      <form id="form-nome" novalidate>
+        <div class="campo">
+          <label for="nome">Alterar nome de jogador</label>
+          <input type="text" id="nome" name="nome" minlength="2" maxlength="50" required>
+        </div>
+        <p id="mensagem-perfil" role="status" hidden></p>
+        <button type="submit" class="botao botao--secundario">Salvar nome</button>
+      </form>
+    </section>
+
+    <section class="cartao" aria-labelledby="titulo-stats">
+      <h2 id="titulo-stats">Estatísticas</h2>
+      <div class="estatisticas">
+        <div class="estatistica"><strong id="est-total">0</strong><span>Partidas</span></div>
+        <div class="estatistica"><strong id="est-vitorias">0</strong><span>Vitórias</span></div>
+        <div class="estatistica"><strong id="est-derrotas">0</strong><span>Derrotas</span></div>
+        <div class="estatistica"><strong id="est-taxa">0%</strong><span>Taxa de vitória</span></div>
+        <div class="estatistica"><strong id="est-media">0</strong><span>Vida final média (LP)</span></div>
+      </div>
+    </section>
+
+    <section class="cartao" aria-labelledby="titulo-historico">
+      <h2 id="titulo-historico">Histórico de partidas</h2>
+      <div class="tabela-rolagem">
+        <table id="tabela-historico">
+          <thead>
+            <tr><th>Data</th><th>Resultado</th><th>Seus LP finais</th><th>LP do oponente</th><th>Turnos</th><th>Ações</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="paginacao">
+        <button type="button" id="pagina-anterior" class="botao botao--secundario">Anterior</button>
+        <span id="pagina-info" role="status"></span>
+        <button type="button" id="pagina-proxima" class="botao botao--secundario">Próxima</button>
+      </div>
+    </section>
+
+    <section class="cartao" id="painel-admin" aria-labelledby="titulo-admin" hidden>
+      <h2 id="titulo-admin">Administração de usuários</h2>
+      <div class="tabela-rolagem">
+        <table id="tabela-usuarios">
+          <thead>
+            <tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Partidas</th><th>Ações</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

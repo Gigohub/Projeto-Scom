@@ -1,0 +1,569 @@
+h1, h3 {
+  color: #ffd700;
+}
+
+:root{
+    --card-height: clamp(50px, 9vh, 95px);
+    --card-width: calc(var(--card-height) * 0.71); /* mantém a proporção 157:220 original */
+}
+.card-container{
+    margin-top: 30px;
+    position: relative;
+}
+.card{
+    position: relative;
+    width: var(--card-width);
+    height: var(--card-height);
+    perspective: 1000px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.card-inner{
+     position:relative;
+    width:100%;
+    height:100%;
+    text-align: center ;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+.card-front, .card-back{
+     position:absolute;
+    width:100%;
+    height:100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+.card-img{
+    width:100%;
+    height:100%;
+}
+.card-back{
+    transform: rotateY(180deg);
+}
+
+.card:not(.card-oculta):hover .card-inner{
+    transform: rotateY(180deg);
+}
+
+/* Cancela a rotação própria do verso para cartas ocultas,
+   já que elas nunca vão "virar" - o verso deve ficar sempre de frente */
+.card-oculta .card-back {
+  transform: none;
+}
+
+.card-arte {
+c--card-width: 157px;
+--card-height: 220px;
+  width: 100%;
+  height: 45%;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid #1a1a1a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.card-arte img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-front {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  background: #e8d9b5; /* cor base (pergaminho) */
+  box-sizing: border-box; /* padding conta DENTRO da largura/altura, não vaza pra fora */
+  overflow: hidden; /* nada extrapola a borda arredondada do card */
+}
+
+.card-action {
+  border: 4px solid #e5ff00; /* dourado/laranja */
+}
+
+.card-magia {
+  border: 4px solid #1f8a70; /* verde */
+}
+
+.card-armadilha {
+  border: 4px solid #a6408c; /* roxo/rosa */
+}
+
+.card-efeito {
+  flex: 1;
+  min-height: 0; /* ESSENCIAL: sem isso, um texto longo força o item a crescer
+                    além do espaço da carta em vez de rolar por dentro — é a
+                    causa real do texto "vazando" para fora da borda */
+  min-width: 0;  /* mesma lógica, no eixo horizontal */
+  font-size: 8px;
+  line-height: 1.2;
+  overflow-y: auto;
+  overflow-wrap: break-word; /* quebra palavras longas em vez de estourar a largura */
+  word-wrap: break-word;
+  text-align: center; /* pedido: efeito centralizado, não colado nas bordas */
+  background: rgba(255, 255, 255, 0.6);
+  padding: 3px;
+  margin-top: 2px;
+  box-sizing: border-box;
+}
+
+.card-stats {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 9px;
+  margin-top: 2px;
+}
+
+.field-row{
+    display: flex;
+    gap: 6px;
+    justify-content: center; /* centraliza os slots, em vez de ficarem grudados na esquerda */
+    margin-bottom: 4px;
+}
+
+.field-slot{
+    position: relative; /* necessário para o botão de efeito que vamos adicionar mais abaixo */
+    width: var(--card-width);
+    height: var(--card-height);
+    border: 2px dashed #535353;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.field-slot.ocupado{
+  border-style: solid;
+}
+
+.field-slot.selecionavel{
+  border-color: #84ff00;
+  background: rgba(46,204, 113, 0.15);
+}
+
+.hud-vida {
+  display: flex;
+  flex-direction: column; /* na barra lateral estreita, empilha em vez de lado a lado */
+  gap: 4px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.hand-container{
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    overflow-x: auto; /* se a mão tiver muitas cartas, ela rola só na horizontal, sem afetar a página */
+    max-width: 100vw;
+    padding: 6px;
+    -webkit-overflow-scrolling: touch; /* rolagem "inercial" suave no Safari/iOS — sem isso, o dedo às vezes parece "travar" no meio do arraste */
+    touch-action: pan-x; /* diz ao navegador que o gesto esperado aqui é arrastar na horizontal, evitando conflito com o "puxar pra atualizar" da página */
+}
+
+#log-jogo {
+  flex: 1;            /* ocupa o espaço que sobrar na barra lateral */
+  min-height: 0;       /* necessário para o overflow-y funcionar dentro de um flex item */
+  overflow-y: auto;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+#log-jogo h3 { margin: 0 0 6px 0; font-size: 14px; }
+#log-jogo ul { list-style: none; margin: 0; padding: 0; }
+#log-jogo li { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+
+.deck-slot {
+  position: relative;
+  width: var(--card-width);
+  height: var(--card-height);
+}
+.deck-contador {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: #000;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* impede o scroll da página inteira */
+    background: #1b1b1b;
+}
+
+/* Layout principal: barra lateral (esquerda) + tabuleiro (direita).
+   Antes era "column" (tudo empilhado verticalmente); agora é "row",
+   então a barra lateral ocupa LARGURA, não ALTURA — sobra muito mais
+   espaço vertical para as cartas. */
+body {
+  color: #f2f2f2;
+  font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+/* A barra lateral: título, botão de fase, HUD de vida e log de mensagens */
+header{
+    flex-shrink: 0;     /* nunca encolhe, largura sempre fixa */
+    width: 200px;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;   /* se o conteúdo da barra crescer, rola só ela, não a página */
+    background: #101014;
+    border-right: 2px solid #2a2a2e;
+}
+
+.header-title-container h1{
+    font-size: 20px;
+    margin: 0;
+}
+
+.controles-turno{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* O tabuleiro (área do oponente + área do jogador) ocupa TODO o espaço
+   restante ao lado da barra lateral, distribuído em coluna */
+.tabuleiro{
+    flex: 1;            /* preenche o resto da largura, depois de reservar os 200px do header */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* distribui oponente/jogador nos 100vh disponíveis */
+    align-items: center;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 6px;
+    overflow: hidden;
+}
+
+.area-oponente, .area-jogador{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.botao-efeito {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: #ffcc00;
+  cursor: pointer;
+  z-index: 5; /* garante que o botão fique por cima da carta, não escondido atrás dela */
+}
+
+.controles-turno,
+#turno-atual,
+#fase-atual,
+.vida-label {
+  color: #ffdd00;
+}
+
+.card-front, .card-front * {
+  color: #1a1a1a;
+}
+
+
+@media (max-width: 700px) {
+
+  /* No desktop, body é "row" (barra lateral ao lado do tabuleiro).
+     No celular, isso é invertido para "column": a barra vira uma
+     faixa fina no TOPO, e o tabuleiro ocupa o resto, abaixo dela. */
+  body {
+    flex-direction: column;
+  }
+
+  /* A barra lateral deixa de ter largura fixa de 200px (que ocuparia
+     mais da metade da tela de um celular) e vira uma faixa no topo,
+     com altura limitada para sobrar espaço para o tabuleiro. */
+  header {
+    width: 100%;
+    height: auto;
+    max-height: 22vh;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 6px;
+    border-right: none;
+    border-bottom: 2px solid #2a2a2e;
+  }
+
+  /* Cada bloco dentro da barra (título, controles, HUD, log) diminui
+     de fonte e alguns passam a ocupar a largura toda (flex-basis: 100%),
+     empilhando de forma compacta em vez de tentar caber lado a lado. */
+  .header-title-container {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+  .header-title-container h1 {
+    font-size: 14px;
+  }
+
+  .controles-turno {
+    flex: 1 1 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  .hud-vida {
+    flex: 1 1 auto;
+    flex-direction: row;
+    gap: 8px;
+    font-size: 10px;
+  }
+
+  /* O log de mensagens fica bem mais baixo no celular, só o suficiente
+     para mostrar 1-2 linhas por vez (ele já rola sozinho por dentro). */
+  #log-jogo {
+    flex: 1 1 100%;
+    max-height: 40px;
+    font-size: 9px;
+  }
+  #log-jogo h3 {
+    font-size: 10px;
+  }
+
+  /* O tabuleiro ganha menos preenchimento nas bordas para aproveitar
+     cada pixel de largura disponível */
+  .tabuleiro {
+    padding: 2px;
+  }
+
+  /* As cartas encolhem mais um pouco no celular, já que agora dividem
+     a largura da tela com margens bem menores */
+  :root {
+    --card-height: clamp(38px, 8vh, 65px);
+  }
+
+  .field-row {
+    gap: 3px;
+  }
+
+  .hand-container {
+    gap: 4px;
+    padding: 3px;
+  }
+}
+
+
+
+#preview-carta {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 157 / 220; /* mesma proporção das cartas do tabuleiro */
+  max-height: 220px;
+  flex-shrink: 0; /* nunca deixa essa caixa encolher para abrir espaço pro log */
+  border: 2px dashed #333;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+
+#preview-conteudo {
+  width: 100%;
+  height: 100%;
+}
+
+#preview-fechar {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10; /* acima da carta desenhada dentro de #preview-conteudo */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+#preview-carta.visivel #preview-fechar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#preview-carta.visivel {
+  opacity: 1;
+  border-style: solid;
+  border-color: #ffd700;
+}
+
+
+@media (max-width: 700px) {
+  #preview-carta {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 65vw;
+    max-width: 260px;
+    aspect-ratio: 157 / 220;
+    max-height: 75vh;
+    z-index: 90; /* fica por cima do tabuleiro, abaixo só do popup de vitória (z-index:100) */
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  #preview-carta.visivel {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  #preview-fechar {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    top: 6px;
+    right: 6px;
+  }
+}
+
+
+.popup-overlay {
+  display: none; 
+  position: fixed;
+  inset: 0; 
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-overlay.visivel {
+  display: flex; 
+}
+
+.popup-caixa {
+  background: #1b1b1b;
+  border: 3px solid #ffd700;
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 320px;
+  text-align: center;
+  color: #f2f2f2;
+}
+
+.popup-caixa p {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.popup-caixa button {
+  margin-top: 14px;
+  padding: 6px 18px;
+  border: none;
+  border-radius: 6px;
+  background: #ffd700;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+
+
+.botao--menu {
+  flex-shrink: 0; 
+  display: block;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #3a1414;
+  color: #ff8888;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #6b2626;
+}
+
+/* Container apenas para posicionamento */
+.controles-topo {
+  flex-shrink: 0; 
+  display: block;
+  text-align: center;
+}
+
+/* Estilização aplicada diretamente ao botão */
+.botaotroca {
+  display: inline-block;
+  width: 100%; /* Ocupa toda a largura do container (opcional) */
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #ffd700;
+  color: #000000;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid #c25f0e;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+/* Efeito ao passar o mouse */
+.botaotroca:hover {
+  background-color: #e6c200;
+  border-color: #722f08
+}
+
+/* Efeito ao clicar */
+.botaotroca:active {
+  transform: scale(0.98);
+}
+
+/* Estado desativado (se usado durante o turno do oponente) */
+.botaotroca:disabled {
+  background-color: #cccccc;
+  border-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+}
+.botao--menu:hover {
+  background: #55201f;
+}
+
+
+@media (max-width: 700px) {
+  .botao--menu {
+    flex: 0 0 auto;
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+
+.card:focus-visible,
+.field-slot:focus-visible {
+  outline: 3px solid #4da6ff;
+  outline-offset: 2px;
+}
