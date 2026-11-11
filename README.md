@@ -1,6 +1,56 @@
-# Projeto-Scom
-Neste repositório contem todos os codigos do projeto 1 e 2 da materia de sistemas computacionais
+======================================================================== KIND GAME — Manual de Instalação e Execução (XAMPP + PHP + MySQL)
+Kind Game é um jogo de cartas Colecionáveis (TCG) para navegador integrado a uma plataforma web completa em PHP/MySQL com autenticação de usuários, estatísticas de partidas e painel administrativo.
 
-O projeto 1 consiste no jogo TCG (Trading Card Game) chamado "Kind Game" onde o jogador tem que ser o mais gentil possivel com seu adversario que vai ser o mais agressivo possivel. O jogo foi baseado no TCG popularmente conhecido "YU-GI-OH!" e tem a intenção de mostrar aos jogadores que as vezes a gentileza é a melhor solução contra o ódio desse mundo.
+REQUISITOS DO SISTEMA
+XAMPP Control Panel instalado (com Apache e MySQL)
+PHP 8.0 ou superior
+Banco de dados MySQL / MariaDB
+Navegador moderno (Chrome, Edge, Firefox, Brave)
+PASSO A PASSO DE INSTALAÇÃO (A PARTIR DA PASTA ZIP)
+Passo 1: Extrair o Projeto
+Localize o arquivo ZIP do projeto (ex: kind-game.zip).
 
-Para rodar o Projeto, basta baixar o zip contendo (pasta images, cards.js,deck.js,homepage.html,index.html,index.js,landing.css,landing.js,style.css) e rodar o html "homepage".
+Extraia o conteúdo diretamente no diretório do XAMPP: C:\xampp\htdocs\kind-game\
+
+(Certifique-se de que a estrutura dos arquivos como homepage.html, index.html, dashboard.html, pastas api/ e src/ fiquem dentro da pasta kind-game).
+
+Passo 2: Iniciar os Serviços no XAMPP
+Abra o XAMPP Control Panel.
+Clique no botão "Start" ao lado de Apache.
+Clique no botão "Start" ao lado de MySQL.
+Passo 3: Criar e Importar o Banco de Dados
+Abra o navegador e acesse: http://localhost/phpmyadmin
+Clique na aba Banco de dados (Databases).
+Crie um novo banco com o nome kindgame (utf8mb4_unicode_ci).
+Selecione o banco kindgame recém-criado e vá na aba Importar (Import).
+Escolha o arquivo de schema localizado em: C:\xampp\htdocs\kind-game\database\schema.sql
+Clique em Executar para criar as tabelas usuarios e partidas.
+Passo 4: Configurar Arquivo de Ambiente (.env)
+Na raiz da pasta do projeto (C:\xampp\htdocs\kind-game\), crie uma cópia do arquivo .env.example e renomeie-o para .env.
+Abra o arquivo .env e confirme as credenciais do banco: DB_HOST=127.0.0.1 DB_NAME=kindgame DB_USER=root DB_PASS= DB_PORT=3306
+COMO ACESSAR A APLICAÇÃO
+Acesse as páginas principais pelo navegador usando as URLs:
+
+Página Inicial (Landing Page): http://localhost/kind-game/homepage.html
+
+Registro e Login: http://localhost/kind-game/login.html
+
+Requisitos de cadastro: Nome (2-50 chars), E-mail válido e Senha forte (mínimo 6 caracteres, contendo pelo menos 1 letra e 1 número).
+Duelo TCG (Jogo contra IA): http://localhost/kind-game/index.html
+
+Dashboard do Jogador & Painel Admin: http://localhost/kind-game/dashboard.html
+
+FUNCIONALIDADES DO SISTEMA
+Autenticação & Segurança: • Criptografia de senhas com password_hash() (bcrypt). • Validação de complexidade de senha no backend e frontend. • Proteção contra requisições forjadas via tokens CSRF. • Controle de sessões com expiração automática.
+
+Perfil & Dashboard: • Alteração de nome de jogador em tempo real sem recarregar a página. • Exibição de vitórias e derrotas integradas no cabeçalho da homepage. • Estatísticas avançadas: total de jogos, vitórias, derrotas, taxa de vitória (%) e média de pontos de vida finais (LP). • Histórico paginado de partidas com opção de exclusão.
+
+Administração de Usuários (Apenas contas 'admin'): • Visualização de todos os usuários cadastrados. • Promover ou rebaixar papéis entre 'admin' e 'jogador'. • Exclusão de contas de usuários (com bloqueio de autoexclusão de admin).
+
+TESTES AUTOMATIZADOS E LOGS
+Para rodar a suíte de testes pelo terminal do Windows: C:\xampp\php\php.exe C:\xampp\htdocs\kind-game\tests\run.php
+
+Os logs do sistema (erros e ações administrativas) são gravados em: C:\xampp\htdocs\kind-game\logs\app.log
+
+ESTRUTURA DE DIRETÓRIOS
+/kind-game ├── api/ <- Endpoints HTTP (register, perfil, partidas, usuarios) ├── css/ <- Estilos CSS (landing.css, auth.css, etc.) ├── database/ <- Script SQL de criação do banco (schema.sql) ├── images/ <- Ilustrações e imagens das cartas ├── js/ <- Arquivos JavaScript (api.js, dashboard.js, landing.js) ├── logs/ <- Registros de log do sistema ├── src/ <- Regras de negócio, Database PDO, Auth e Logger ├── tests/ <- Testes automatizados PHP ├── dashboard.html <- Painel de usuário e administração ├── homepage.html <- Landing page institucional com dados do usuário ├── index.html <- Arena de duelo do jogo ├── login.html <- Formulário de autenticação e registro └── README.txt <- Instruções do projeto
