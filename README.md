@@ -1,4 +1,5 @@
-======================================================================== KIND GAME — Manual de Instalação e Execução (XAMPP + PHP + MySQL)
+ KIND GAME — Manual de Instalação e Execução (XAMPP + PHP + MySQL)
+ ================================================================================================================
 Kind Game é um jogo de cartas Colecionáveis (TCG) para navegador integrado a uma plataforma web completa em PHP/MySQL com autenticação de usuários, estatísticas de partidas e painel administrativo.
 
 REQUISITOS DO SISTEMA
