@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Criar conta · Kind Game</title>
+  <link rel="stylesheet" href="css/auth.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+</head>
+<body>
+  <main class="pagina pagina--estreita">
+    <div class="cartao">
+      <h1>Criar conta</h1>
+      <p id="mensagem" role="alert" hidden></p>
+
+      <form id="form-cadastro" novalidate>
+        <div class="campo">
+          <label for="nome">Nome de jogador</label>
+          <input type="text" id="nome" name="nome" autocomplete="nickname" required minlength="2" maxlength="50">
+          <p class="campo__ajuda">2 a 50 caracteres: letras, números, espaço, ponto, hífen e sublinhado.</p>
+          <p class="campo__erro" data-erro-de="nome"></p>
+        </div>
+        <div class="campo">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" autocomplete="email" required maxlength="120">
+          <p class="campo__erro" data-erro-de="email"></p>
+        </div>
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" name="senha" autocomplete="new-password" required minlength="8" maxlength="72">
+          <p class="campo__ajuda">Mínimo de 8 caracteres, com letras e números.</p>
+          <p class="campo__erro" data-erro-de="senha"></p>
+        </div>
+        <div class="campo">
+          <label for="confirmar">Confirmar senha</label>
+          <input type="password" id="confirmar" name="confirmar" autocomplete="new-password" required maxlength="72">
+          <p class="campo__erro" data-erro-de="confirmar"></p>
+        </div>
+        <button type="submit" class="botao botao--cheio">Criar conta</button>
+      </form>
+
+      <p class="rodape-form">Já tem conta? <a href="login.html">Entrar</a></p>
+    </div>
+  </main>
+</body>
+</html>

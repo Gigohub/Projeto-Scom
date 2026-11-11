@@ -1,0 +1,12 @@
+/* Área de conta no menu da homepage (ajuste as cores ao seu landing.css). */
+.conta { display: flex; align-items: center; gap: 8px; }
+.conta[hidden] { display: none; }
+.conta__perfil { display: inline-flex; align-items: center; gap: 8px; }
+.conta__avatar {
+    display: inline-grid; place-items: center; width: 28px; height: 28px;
+    border-radius: 50%; background: #f5b83d; color: #1b1300; font-weight: 700;
+}
+.conta__nome { max-width: 12ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conta__selo { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #f5b83d; color: #1b1300; }
+.conta__stats { font-size: 0.8rem; opacity: 0.85; white-space: nowrap; }
+.conta__sair { cursor: pointer; }

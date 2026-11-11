@@ -1,0 +1,84 @@
+// js/Sessao.js
+
+function criarElemento(tag, classe, texto) {
+    const el = document.createElement(tag);
+    if (classe) el.className = classe;
+    if (texto !== undefined) el.textContent = texto;
+    return el;
+}
+
+function montarVisitante(item) {
+    item.replaceChildren();
+    const entrar = criarElemento('a', 'botao botao--menu', 'Entrar');
+    entrar.href = 'login.html';
+    const criar = criarElemento('a', 'botao botao--menu', 'Criar conta');
+    criar.href = 'cadastro.html';
+    item.append(entrar, criar);
+}
+
+function montarLogado(item, usuario, estatisticas) {
+    item.replaceChildren();
+
+    const perfil = criarElemento('a', 'botao botao--menu conta__perfil');
+    perfil.href = 'dashboard.html';
+    perfil.title = `${usuario.email} · abrir meu dashboard`;
+
+    const avatar = criarElemento('span', 'conta__avatar', (usuario.nome || 'U').charAt(0).toUpperCase());
+    avatar.setAttribute('aria-hidden', 'true');
+
+    perfil.append(avatar, criarElemento('span', 'conta__nome', usuario.nome));
+    item.append(perfil);
+
+    if (usuario.papel === 'admin') {
+        item.append(criarElemento('span', 'conta__selo', 'Admin'));
+    }
+    if (estatisticas) {
+        item.append(criarElemento('span', 'conta__stats', `${estatisticas.vitorias}V · ${estatisticas.derrotas}D`));
+    }
+
+    const sair = criarElemento('button', 'botao botao--menu conta__sair', 'Sair');
+    sair.type = 'button';
+    sair.addEventListener('click', async () => {
+        sair.disabled = true;
+        try {
+            await apiFetch('auth/logout.php', { metodo: 'POST' });
+        } catch (e) {
+            /* ignora erro no logout */
+        }
+        definirTokenCsrf(null);
+        montarVisitante(item);
+    });
+    item.append(sair);
+}
+
+async function iniciarAreaDeConta() {
+    const lista = document.querySelector('.menu__lista');
+    if (!lista) return;
+
+    // Remove o link de Login estático do HTML para dar lugar ao perfil dinâmico
+    lista.querySelectorAll('a[href="login.html"]').forEach((a) => (a.closest('li') || a).remove());
+
+    const item = document.createElement('li');
+    item.className = 'conta';
+    lista.append(item);
+
+    try {
+        const dados = await apiFetch('auth/me.php');
+        if (dados.csrf_token) definirTokenCsrf(dados.csrf_token);
+
+        let estatisticas = null;
+        try {
+            const respStats = await apiFetch('partidas.php?limite=1');
+            estatisticas = respStats.estatisticas;
+        } catch (e) {
+            /* exibe o perfil mesmo sem estatísticas */
+        }
+
+        montarLogado(item, dados.usuario, estatisticas);
+    } catch (erro) {
+        console.info('[Sessao] Visitante ou não autenticado:', erro.message);
+        montarVisitante(item);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', iniciarAreaDeConta);
